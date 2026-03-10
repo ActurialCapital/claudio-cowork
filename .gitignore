@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Claude Cowork session artifacts
+CLAUDE OUTPUTS/
+
+# Temp previews
+*-preview.html

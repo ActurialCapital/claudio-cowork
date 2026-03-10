@@ -1,0 +1,23 @@
+{
+  "skill_name": "meta-prompt-generator",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "I have an idea for a service that monitors my portfolio positions across 3 exchanges (Binance, Bybit, Deribit), detects when any single position exceeds 5% of total NAV, and sends a Slack alert with the exact rebalancing trade needed to bring it back to target weight. I want you to turn this into a structured spec that an autonomous agent could execute to build this service.",
+      "expected_output": "A YAML+Markdown spec with clear inputs (exchange APIs, position data), outputs (Slack alert with trade details), constraints (real-time, multi-exchange auth), and a sequential workflow from data fetch to alert dispatch.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "I have a Python backtesting module that uses vectorized pandas operations for signal generation and portfolio construction. It currently runs a single backtest with fixed parameters. I want to extend it with walk-forward optimization: rolling train/test windows, parameter grid search on the train set, out-of-sample evaluation on the test set, and aggregate statistics across all windows. Turn this into an agent-ready spec. Here's the core structure:\n\n```python\nclass Backtester:\n    def __init__(self, data: pd.DataFrame, signal_func, portfolio_func):\n        self.data = data\n        self.signal_func = signal_func\n        self.portfolio_func = portfolio_func\n    \n    def run(self, params: dict) -> BacktestResult:\n        signals = self.signal_func(self.data, **params)\n        positions = self.portfolio_func(signals)\n        returns = positions.shift(1) * self.data['returns']\n        return BacktestResult(returns=returns, positions=positions)\n```",
+      "expected_output": "A YAML+Markdown spec that understands the existing code structure, defines inputs (the Backtester class, parameter grid, window config), outputs (walk-forward results with OOS metrics), constraints (must extend not rewrite the class), and a multi-step workflow for the rolling optimization loop.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Here's the relevant section from Binance's WebSocket API docs for order book streams:\n\n- Endpoint: wss://stream.binance.com:9443/ws/<symbol>@depth@100ms\n- Payload: {\"e\":\"depthUpdate\",\"E\":timestamp,\"s\":\"BTCUSDT\",\"U\":first_update_id,\"u\":final_update_id,\"b\":[[price,qty],...],\"a\":[[price,qty],...]}\n- To maintain a local order book: get a depth snapshot via REST, then apply each depthUpdate where U <= lastUpdateId+1 and u >= lastUpdateId+1\n- Rate limit: 5 requests/sec for REST snapshots\n\nI want to build a real-time order book aggregator that maintains synchronized L2 books for BTCUSDT across Binance and Bybit, computes cross-exchange spread and mid-price divergence, and logs snapshots to TimescaleDB every 100ms. Turn this into a spec an agent can build from.",
+      "expected_output": "A YAML+Markdown spec with inputs (WebSocket endpoints for both exchanges), outputs (TimescaleDB table with spread/divergence metrics), constraints (100ms latency target, proper sequence ID handling, reconnection logic), and a parallel workflow for the two exchange feeds merging into a single computation step.",
+      "files": []
+    }
+  ]
+}
