@@ -10,9 +10,9 @@
 </p>
 
 <p align="center">
-  <a href="docs/HOW-TO.md">Setup Guide</a> &middot;
-  <a href="docs/HOW-TO.md#the-meta-prompt-generator-skill">Meta-Prompt Generator</a> &middot;
-  <a href="docs/HOW-TO.md#how-it-works-end-to-end">How It Works</a>
+  <a href="HOW-TO.md">Setup Guide</a> &middot;
+  <a href="HOW-TO.md#the-meta-prompt-generator-skill">Meta-Prompt Generator</a> &middot;
+  <a href="HOW-TO.md#how-it-works-end-to-end">How It Works</a>
 </p>
 
 ---
@@ -83,11 +83,11 @@ git clone https://github.com/<your-username>/claudio-cowork.git
 1. Replace `ABOUT-ME/` files with your own profile and writing rules
 2. Open Claude Desktop → **Settings → Cowork → Edit Global Instructions** → paste from `GLOBAL-INSTRUCTIONS.md`
 3. Start a Cowork session → **Add Folder** → select the cloned directory
-4. (Optional) Set up the [`/prompt` Mac text shortcut](docs/HOW-TO.md#setting-up-the-prompt-template-and-mac-shortcut)
-5. (Optional) Install the [meta-prompt-generator skill](docs/HOW-TO.md#the-meta-prompt-generator-skill)
-6. (Optional) Create the [weekly output audit](docs/HOW-TO.md#scheduled-output-audit)
+4. (Optional) Set up the [`/prompt` Mac text shortcut](HOW-TO.md#setting-up-the-prompt-template-and-mac-shortcut)
+5. (Optional) Install the [meta-prompt-generator skill](HOW-TO.md#the-meta-prompt-generator-skill)
+6. (Optional) Create the [weekly output audit](HOW-TO.md#scheduled-output-audit)
 
-Full walkthrough: [`docs/HOW-TO.md`](docs/HOW-TO.md)
+Full walkthrough: [`HOW-TO.md`](HOW-TO.md)
 
 ## What's Inside
 
@@ -98,7 +98,7 @@ Full walkthrough: [`docs/HOW-TO.md`](docs/HOW-TO.md)
 | `ABOUT-ME/feedback.md` | Running correction log. One line per fix. Read before every task, applied as overrides. Grows over time into a personalized fine-tuning layer. |
 | `GLOBAL-INSTRUCTIONS.md` | Control plane. Folder protocol (3 read-only + 1 write), naming conventions, domain defaults. Paste into Cowork settings. |
 | `PROMPT-TEMPLATE.md` | Reusable prompt that forces context loading → clarification → execution. Includes Mac text shortcut setup and 8 domain examples. |
-| `TEMPLATES/meta-prompt-generator/` | Custom skill that transforms ideas, codebases, or docs into structured YAML+Markdown specs for autonomous agent execution. [Details →](docs/HOW-TO.md#the-meta-prompt-generator-skill) |
+| `TEMPLATES/meta-prompt-generator/` | Custom skill that transforms ideas, codebases, or docs into structured YAML+Markdown specs for autonomous agent execution. [Details →](HOW-TO.md#the-meta-prompt-generator-skill) |
 
 ## The Meta-Prompt Generator
 
