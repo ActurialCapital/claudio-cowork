@@ -54,7 +54,7 @@ This section walks through what happens from the moment you open Claude Cowork t
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
 │  4. CONTEXT LOADING                                             │
-│     Claude checks PROJECTS/ for relevant project context        │
+│     Claude checks claudio-cowork/PROJECTS/ for project context  │
 │     Claude checks TEMPLATES/ for matching skill or pattern      │
 │     If meta-prompt-generator matches → loads SKILL.md           │
 └──────────────────────────┬──────────────────────────────────────┘
@@ -232,10 +232,10 @@ Plugins are bundles of skills, connectors, and tools that extend Cowork's capabi
 
 When you start a Cowork session, you select folders via **Add Folder** on the session start screen. Cowork remembers previously selected folders but you can change them per session. The system expects at minimum:
 
-1. **The claudio-cowork/ directory** — contains your profile, templates, and skills
+1. **The claudio-cowork/ directory** — contains your profile, templates, skills, and projects
 2. **A write directory** (e.g., `CLAUDE OUTPUTS/`) — where Claude delivers work
 
-If you want Claude to access project-specific files, add a `PROJECTS/` folder as a third mount point.
+Projects live inside `claudio-cowork/PROJECTS/` — one subfolder per project. No separate mount needed.
 
 ### Scheduled Tasks
 
@@ -288,9 +288,9 @@ Global Instructions are the control plane. They tell Claude what to read, where 
 **FOLDER PROTOCOL** — Defines three read-only folders and one write folder. Adjust the folder names if your structure differs:
 
 ```
-Read-only:
-  ABOUT ME/     → Identity and preferences
-  TEMPLATES/    → Reusable patterns
+Read-only (all inside claudio-cowork/):
+  ABOUT-ME/     → Identity and preferences
+  TEMPLATES/    → Reusable patterns and skills
   PROJECTS/     → Project-specific context
 
 Write:
@@ -598,11 +598,11 @@ The system uses a strict read/write separation to prevent Claude from accidental
 
 | Folder | Purpose | Contents |
 |--------|---------|----------|
-| `ABOUT-ME/` | Identity and preferences | Profile, writing rules, correction log |
-| `TEMPLATES/` | Reusable patterns and skills | Skill instructions, reference docs, eval configs |
-| `PROJECTS/` | Project-specific context | Briefs, datasets, reference code (you create this) |
+| `claudio-cowork/ABOUT-ME/` | Identity and preferences | Profile, writing rules, correction log |
+| `claudio-cowork/TEMPLATES/` | Reusable patterns and skills | Skill instructions, reference docs, eval configs |
+| `claudio-cowork/PROJECTS/` | Project-specific context | Briefs, datasets, reference code |
 
-Claude reads from these folders to build context. It never creates, edits, or deletes files here (enforced by Global Instructions).
+All three are inside the `claudio-cowork/` directory. Claude reads from these folders to build context. It never creates, edits, or deletes files here (enforced by Global Instructions).
 
 ### Write Folder
 

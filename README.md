@@ -62,6 +62,7 @@ claudio-cowork/
 │   ├── about-me.md                        ← Your profile: stack, domains, priorities
 │   ├── anti-ai-writing-style.md           ← Writing rules and kill list
 │   └── feedback.md                        ← Running correction log
+├── PROJECTS/                              ← Your briefs, references, data (per project)
 ├── GLOBAL-INSTRUCTIONS.md                 ← Paste into Settings → Cowork
 ├── PROMPT-TEMPLATE.md                     ← Reusable prompt + Mac shortcut setup
 └── TEMPLATES/
@@ -98,6 +99,7 @@ Full walkthrough: [`HOW-TO.md`](HOW-TO.md)
 | `ABOUT-ME/feedback.md` | Running correction log. One line per fix. Read before every task, applied as overrides. Grows over time into a personalized fine-tuning layer. |
 | `GLOBAL-INSTRUCTIONS.md` | Control plane. Folder protocol (3 read-only + 1 write), naming conventions, domain defaults. Paste into Cowork settings. |
 | `PROMPT-TEMPLATE.md` | Reusable prompt that forces context loading → clarification → execution. Includes Mac text shortcut setup and 8 domain examples. |
+| `PROJECTS/` | Project-specific briefs, references, datasets, and finished work. One subfolder per project. Claude reads the matching subfolder when a task relates to a project. |
 | `TEMPLATES/meta-prompt-generator/` | Custom skill that transforms ideas, codebases, or docs into structured YAML+Markdown specs for autonomous agent execution. [Details →](HOW-TO.md#the-meta-prompt-generator-skill) |
 
 ## The Meta-Prompt Generator
