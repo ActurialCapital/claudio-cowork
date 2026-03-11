@@ -9,15 +9,15 @@
 1. Read all files in `claudio-cowork/ABOUT-ME/`, including `feedback.md`. No task starts without reading them.
 2. Apply every correction in `feedback.md`. These override any conflicting defaults.
 3. If the task relates to a project, read everything in the matching `claudio-cowork/PROJECTS/` subfolder before proceeding.
-3. If the task involves a content type that has a matching pattern in `claudio-cowork/TEMPLATES/`, study that template's structure first. Use the structure. Don't copy the content.
-4. Follow every rule in `anti-ai-writing-style.md` for all outputs. No exceptions.
+4. If the task involves a content type that has a matching skill in `claudio-cowork/SKILLS/`, study that skill's structure first. Use the structure. Don't copy the content.
+5. Follow every rule in `anti-ai-writing-style.md` for all outputs. No exceptions.
 
 ## FOLDER PROTOCOL
 You have three read-only folders and one write folder.
 
 ### Read-only — never create, edit, or delete anything here:
 - `claudio-cowork/ABOUT-ME/` → My identity, stack, communication preferences, writing rules, and correction log.
-- `claudio-cowork/TEMPLATES/` → Proven structures and skills to reuse as patterns.
+- `claudio-cowork/SKILLS/` → Proven structures and skills to reuse as patterns.
 - `claudio-cowork/PROJECTS/` → Briefs, references, data, and finished work organized by project.
 
 ### Write folder — the only place you deliver work:

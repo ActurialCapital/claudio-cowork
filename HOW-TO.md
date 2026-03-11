@@ -55,7 +55,7 @@ This section walks through what happens from the moment you open Claude Cowork t
 ┌──────────────────────────▼──────────────────────────────────────┐
 │  4. CONTEXT LOADING                                             │
 │     Claude checks claudio-cowork/PROJECTS/ for project context  │
-│     Claude checks TEMPLATES/ for matching skill or pattern      │
+│     Claude checks SKILLS/ for matching skill or pattern      │
 │     If meta-prompt-generator matches → loads SKILL.md           │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
@@ -232,7 +232,7 @@ Plugins are bundles of skills, connectors, and tools that extend Cowork's capabi
 
 When you start a Cowork session, you select folders via **Add Folder** on the session start screen. Cowork remembers previously selected folders but you can change them per session. The system expects at minimum:
 
-1. **The claudio-cowork/ directory** — contains your profile, templates, skills, and projects
+1. **The claudio-cowork/ directory** — contains your profile, skills, and projects
 2. **A write directory** (e.g., `CLAUDE OUTPUTS/`) — where Claude delivers work
 
 Projects live inside `claudio-cowork/PROJECTS/` — one subfolder per project. No separate mount needed.
@@ -283,14 +283,14 @@ Global Instructions are the control plane. They tell Claude what to read, where 
 
 ### Key Sections
 
-**BEFORE EVERY TASK** — This is the boot sequence. Claude reads all files in `ABOUT-ME/` (including `feedback.md`), checks for relevant project context, and loads applicable templates. Never remove the instruction to read `feedback.md` — that's how corrections accumulate.
+**BEFORE EVERY TASK** — This is the boot sequence. Claude reads all files in `ABOUT-ME/` (including `feedback.md`), checks for relevant project context, and loads applicable skills. Never remove the instruction to read `feedback.md` — that's how corrections accumulate.
 
 **FOLDER PROTOCOL** — Defines three read-only folders and one write folder. Adjust the folder names if your structure differs:
 
 ```
 Read-only (all inside claudio-cowork/):
   ABOUT-ME/     → Identity and preferences
-  TEMPLATES/    → Reusable patterns and skills
+  SKILLS/    → Reusable patterns and skills
   PROJECTS/     → Project-specific context
 
 Write:
@@ -363,19 +363,29 @@ It produces a YAML+Markdown specification with: objective, scope/out-of-scope, g
 
 ### How to Install the Skill
 
-**Option A — Point Cowork at the folder.** When you add the `claudio-cowork/` directory to a Cowork session, Claude can read `TEMPLATES/meta-prompt-generator/SKILL.md` when you ask it to generate a spec.
-
-**Option B — Copy to the Cowork skills directory.** For the skill to trigger automatically by phrase matching (without you explicitly referencing the folder), copy the entire `meta-prompt-generator/` directory into Claude's skills folder:
+**Option A — `make skills` (recommended).** From the repo root:
 
 ```bash
-cp -r TEMPLATES/meta-prompt-generator/ ~/path-to-cowork-skills/meta-prompt-generator/
+make skills
 ```
 
-The exact skills directory location depends on your Cowork configuration.
+This finds all skills in `SKILLS/`, packages them as `.skill` files, and opens each one for install. Claude Desktop will show an install prompt for each skill — accept it. Once installed, skills auto-trigger by phrase matching in every future session. Re-running `make skills` skips already-packaged skills.
+
+**Option B — Explicit reference (no install needed).** When you add the `claudio-cowork/` directory to a Cowork session, tell Claude to read the skill in your prompt:
+
+```
+Read claudio-cowork/SKILLS/meta-prompt-generator/SKILL.md and use it.
+I have an idea for [your idea]. Turn this into a spec. Ask me questions first.
+```
+
+This works immediately with no setup. Claude reads the SKILL.md and follows it.
+
+**What gets installed:** Only `SKILL.md` and `references/` are included in the `.skill` package. The `evals/` folder is excluded — it's for testing and improving the skill, not for runtime use. It stays in the repo.
 
 ### How to Trigger It
 
-Say any of the following (or similar):
+**If installed as a skill (Option A),** say any of the following (or similar):
+
 - "Turn this into a spec"
 - "Write an agent prompt for this"
 - "Create an agent prompt from this code"
@@ -383,9 +393,12 @@ Say any of the following (or similar):
 - "Make this executable by an agent"
 
 Or drop in a codebase, doc, or braindump and say:
+
 - "Make this actionable"
 - "Productionize this"
 - "Write instructions an AI can follow"
+
+**If not installed (Option B),** include "Read claudio-cowork/SKILLS/meta-prompt-generator/SKILL.md and use it" in your prompt.
 
 ### How It Works Internally
 
@@ -566,9 +579,9 @@ The audit task's prompt is fully customizable. Common modifications:
 
 Skills are folders containing a `SKILL.md` file with instructions that Claude loads when triggered. To create a new skill:
 
-1. Create a folder under `TEMPLATES/`:
+1. Create a folder under `SKILLS/`:
    ```
-   TEMPLATES/
+   SKILLS/
    └── my-new-skill/
        ├── SKILL.md          ← Required: instructions
        └── references/       ← Optional: reference docs
@@ -599,7 +612,7 @@ The system uses a strict read/write separation to prevent Claude from accidental
 | Folder | Purpose | Contents |
 |--------|---------|----------|
 | `claudio-cowork/ABOUT-ME/` | Identity and preferences | Profile, writing rules, correction log |
-| `claudio-cowork/TEMPLATES/` | Reusable patterns and skills | Skill instructions, reference docs, eval configs |
+| `claudio-cowork/SKILLS/` | Reusable patterns and skills | Skill instructions, reference docs, eval configs |
 | `claudio-cowork/PROJECTS/` | Project-specific context | Briefs, datasets, reference code |
 
 All three are inside the `claudio-cowork/` directory. Claude reads from these folders to build context. It never creates, edits, or deletes files here (enforced by Global Instructions).
@@ -624,7 +637,7 @@ Without explicit folder protocols, Claude may write outputs alongside your conte
 
 **Claude uses AI-speak despite the writing rules.** Add the specific phrase to `feedback.md` with the date. This creates an explicit override. If a pattern persists across sessions, check that `anti-ai-writing-style.md` has the phrase in the kill list and that Global Instructions include the line "Follow every rule in `anti-ai-writing-style.md` for all outputs."
 
-**The meta-prompt skill doesn't trigger.** If the skill is only in the `TEMPLATES/` folder (not copied to the Cowork skills directory), you need to explicitly reference it: "Read the meta-prompt-generator skill and use it to spec this out." For automatic triggering, copy the skill folder to your Cowork skills directory.
+**The meta-prompt skill doesn't trigger.** If the skill is only in the `SKILLS/` folder (not copied to the Cowork skills directory), you need to explicitly reference it: "Read the meta-prompt-generator skill and use it to spec this out." For automatic triggering, copy the skill folder to your Cowork skills directory.
 
 **Mac text shortcut doesn't expand.** Check **System Settings → Keyboard → Text Input → Text Replacements**. The shortcut must be listed there. Some apps (particularly Electron-based) may delay expansion — press space or return after typing `/prompt` to trigger it.
 

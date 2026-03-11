@@ -34,7 +34,7 @@ Claude reads ABOUT-ME/ (profile + writing rules + corrections)
     ↓
 You send a prompt (using /prompt shortcut)
     ↓
-Claude loads relevant TEMPLATES/ and PROJECTS/
+Claude loads relevant SKILLS/ and PROJECTS/
     ↓
 Claude asks clarifying questions before executing
     ↓
@@ -55,37 +55,28 @@ The prompts stay simple. The context does the heavy lifting.
 ```
 claudio-cowork/
 ├── README.md
-├── docs/
-│   ├── HOW-TO.md                          ← Setup, customization, and extension guide
-│   └── claudio-logo.svg                   ← Logo asset
+├── HOW-TO.md                              ← Setup, customization, and extension guide
 ├── ABOUT-ME/
-│   ├── about-me.md                        ← Your profile: stack, domains, priorities
-│   ├── anti-ai-writing-style.md           ← Writing rules and kill list
-│   └── feedback.md                        ← Running correction log
 ├── PROJECTS/                              ← Your briefs, references, data (per project)
 ├── GLOBAL-INSTRUCTIONS.md                 ← Paste into Settings → Cowork
 ├── PROMPT-TEMPLATE.md                     ← Reusable prompt + Mac shortcut setup
-└── TEMPLATES/
-    └── meta-prompt-generator/             ← Custom skill: idea → agent-ready spec
-        ├── SKILL.md                       ← Skill instructions (v2.1)
-        ├── references/
-        │   ├── output-format-rationale.md ← Why YAML+MD over XML/Markdown/flexible
-        │   └── yaml-to-xml-mapping.md     ← YAML → XML conversion rules
-        └── evals/
-            └── evals.json                 ← Test cases for skill validation
+├── Makefile                               ← make skills to install skills
+└── SKILLS/
 ```
 
 ## Quick Start
 
 ```bash
 git clone https://github.com/<your-username>/claudio-cowork.git
+cd claudio-cowork
+make skills
 ```
 
-1. Replace `ABOUT-ME/` files with your own profile and writing rules
-2. Open Claude Desktop → **Settings → Cowork → Edit Global Instructions** → paste from `GLOBAL-INSTRUCTIONS.md`
-3. Start a Cowork session → **Add Folder** → select the cloned directory
-4. (Optional) Set up the [`/prompt` Mac text shortcut](HOW-TO.md#setting-up-the-prompt-template-and-mac-shortcut)
-5. (Optional) Install the [meta-prompt-generator skill](HOW-TO.md#the-meta-prompt-generator-skill)
+1. Accept the install prompt(s) in Claude Desktop
+2. Replace `ABOUT-ME/` files with your own profile and writing rules
+3. Open Claude Desktop → **Settings → Cowork → Edit Global Instructions** → paste from `GLOBAL-INSTRUCTIONS.md`
+4. Start a Cowork session → **Add Folder** → select the cloned directory
+5. (Optional) Set up the [`/prompt` Mac text shortcut](HOW-TO.md#setting-up-the-prompt-template-and-mac-shortcut)
 6. (Optional) Create the [weekly output audit](HOW-TO.md#scheduled-output-audit)
 
 Full walkthrough: [`HOW-TO.md`](HOW-TO.md)
@@ -100,7 +91,7 @@ Full walkthrough: [`HOW-TO.md`](HOW-TO.md)
 | `GLOBAL-INSTRUCTIONS.md` | Control plane. Folder protocol (3 read-only + 1 write), naming conventions, domain defaults. Paste into Cowork settings. |
 | `PROMPT-TEMPLATE.md` | Reusable prompt that forces context loading → clarification → execution. Includes Mac text shortcut setup and 8 domain examples. |
 | `PROJECTS/` | Project-specific briefs, references, datasets, and finished work. One subfolder per project. Claude reads the matching subfolder when a task relates to a project. |
-| `TEMPLATES/meta-prompt-generator/` | Custom skill that transforms ideas, codebases, or docs into structured YAML+Markdown specs for autonomous agent execution. [Details →](HOW-TO.md#the-meta-prompt-generator-skill) |
+| `SKILLS/meta-prompt-generator/` | Custom skill that transforms ideas, codebases, or docs into structured YAML+Markdown specs for autonomous agent execution. [Details →](HOW-TO.md#the-meta-prompt-generator-skill) |
 
 ## The Meta-Prompt Generator
 
@@ -114,14 +105,10 @@ meta-prompt → prompt → spec → code
 
 The skill classifies your input, extracts requirements through structured questions, generates a YAML frontmatter (single source of truth) with a Markdown body (examples, anti-patterns, implementation guidance), then runs 9 quality checks before delivering the spec.
 
-Output format rationale — why YAML+Markdown over XML, structured Markdown, or flexible formats — is documented in [`references/output-format-rationale.md`](TEMPLATES/meta-prompt-generator/references/output-format-rationale.md). The short version: YAML+MD wins for human-in-the-loop workflows; XML wins for pure automation; the recommended architecture is hybrid (YAML+MD early, XML late).
+Output format rationale — why YAML+Markdown over XML, structured Markdown, or flexible formats — is documented in [`references/output-format-rationale.md`](SKILLS/meta-prompt-generator/references/output-format-rationale.md). The short version: YAML+MD wins for human-in-the-loop workflows; XML wins for pure automation; the recommended architecture is hybrid (YAML+MD early, XML late).
 
 ## Methodology
 
 Follows a "context over prompting" philosophy, inspired by [Ruben Hassid's Cowork customization guide](https://ruben.substack.com/p/claude-cowork). Instead of crafting perfect prompts per task, give Claude persistent context about who you are and how you work. Output quality improves over time without changing any prompts.
 
 This system was built for a quantitative engineering workflow (systematic trading, ML research, full-stack development), but the architecture is domain-agnostic. Fork it, replace the content, and it works for any domain.
-
-## License
-
-MIT

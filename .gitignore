@@ -15,3 +15,7 @@ CLAUDE OUTPUTS/
 
 # Temp previews
 *-preview.html
+
+# Build artifacts
+dist/
+*.skill
