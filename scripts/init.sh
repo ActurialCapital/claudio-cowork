@@ -4,8 +4,8 @@ source "$(dirname "$0")/lib.sh"
 
 # ─────────────────────────────────────────────────────────────────
 # claudio-cowork interactive configuration
-# Configures about-me.md, anti-ai-writing-style.md, and
-# GLOBAL-INSTRUCTIONS.md in project-root/CLAUDE/.
+# Configures about-me.md, anti-ai-writing-style.md, feedback.md,
+# and GLOBAL-INSTRUCTIONS.md in project-root/CLAUDE/.
 # All writes go to $TARGET (project root CLAUDE/).
 # Template files in claudio-cowork/CLAUDE/ are never modified.
 #
@@ -41,6 +41,7 @@ fi
 # ── Skip tracking ──
 SKIP_ABOUT_ME=false
 SKIP_WRITING_STYLE=false
+SKIP_FEEDBACK=false
 SKIP_GLOBAL=false
 
 
@@ -52,10 +53,10 @@ generate_global_instructions() {
     local out="$TARGET/GLOBAL-INSTRUCTIONS.md"
 
     # Determine whether ABOUT-ME/ folder should be referenced.
-    # The folder is relevant if any of its files (about-me.md or
-    # anti-ai-writing-style.md) were configured.
+    # The folder is relevant if any of its files (about-me.md,
+    # anti-ai-writing-style.md, or feedback.md) were configured.
     local has_about_me_folder=false
-    if ! $SKIP_ABOUT_ME || ! $SKIP_WRITING_STYLE; then
+    if ! $SKIP_ABOUT_ME || ! $SKIP_WRITING_STYLE || ! $SKIP_FEEDBACK; then
         has_about_me_folder=true
     fi
 
@@ -68,10 +69,15 @@ generate_global_instructions() {
         local step=1
 
         if $has_about_me_folder; then
-            echo "${step}. Read all files in \`CLAUDE/ABOUT-ME/\`, including \`feedback.md\`. No task starts without reading them."
-            step=$((step + 1))
-            echo "${step}. Apply every correction in \`feedback.md\`. These override any conflicting defaults."
-            step=$((step + 1))
+            if ! $SKIP_FEEDBACK; then
+                echo "${step}. Read all files in \`CLAUDE/ABOUT-ME/\`, including \`feedback.md\`. No task starts without reading them."
+                step=$((step + 1))
+                echo "${step}. Apply every correction in \`feedback.md\`. These override any conflicting defaults."
+                step=$((step + 1))
+            else
+                echo "${step}. Read all files in \`CLAUDE/ABOUT-ME/\`. No task starts without reading them."
+                step=$((step + 1))
+            fi
         fi
 
         echo "${step}. If the task relates to a project, read everything in the matching \`CLAUDE/PROJECTS/\` subfolder before proceeding."
@@ -100,14 +106,26 @@ generate_global_instructions() {
 
         if $has_about_me_folder; then
             # Build description based on which files are configured
+            local about_parts=()
+            ! $SKIP_ABOUT_ME      && about_parts+=("identity, stack, communication preferences")
+            ! $SKIP_WRITING_STYLE && about_parts+=("writing rules")
+            ! $SKIP_FEEDBACK      && about_parts+=("correction log")
+
+            # Join parts with commas and trailing period
             local about_desc=""
-            if ! $SKIP_ABOUT_ME && ! $SKIP_WRITING_STYLE; then
-                about_desc="My identity, stack, communication preferences, writing rules, and correction log."
-            elif ! $SKIP_ABOUT_ME; then
-                about_desc="My identity, stack, communication preferences, and correction log."
-            else
-                about_desc="Writing rules and correction log."
-            fi
+            local i=0
+            for part in "${about_parts[@]}"; do
+                if [ $i -eq 0 ]; then
+                    # Capitalize first part
+                    about_desc="My ${part}"
+                elif [ $i -eq $(( ${#about_parts[@]} - 1 )) ]; then
+                    about_desc+=", and ${part}"
+                else
+                    about_desc+=", ${part}"
+                fi
+                i=$((i + 1))
+            done
+            about_desc+="."
             echo "- \`CLAUDE/ABOUT-ME/\` → ${about_desc}"
         fi
 
@@ -138,7 +156,7 @@ generate_global_instructions() {
 # STEP 1: about-me.md
 # ═════════════════════════════════════════════════════════════════
 
-printf "\n  ${GREEN}◆ Step 1/4 — about-me.md${RESET}\n"
+printf "\n  ${GREEN}◆ Step 1/5 — about-me.md${RESET}\n"
 dim "Your developer profile, project context, and preferences."
 
 prompt_choice_skip "Context" "Customize"
@@ -290,7 +308,7 @@ esac
 # ═════════════════════════════════════════════════════════════════
 
 divider
-printf "\n  ${GREEN}◆ Step 2/4 — anti-ai-writing-style.md${RESET}\n"
+printf "\n  ${GREEN}◆ Step 2/5 — anti-ai-writing-style.md${RESET}\n"
 dim "Rules for how Claude should (and should not) write."
 
 prompt_choice_skip "Use default" "Customize"
@@ -348,11 +366,35 @@ esac
 
 
 # ═════════════════════════════════════════════════════════════════
-# STEP 3: GLOBAL-INSTRUCTIONS.md
+# STEP 3: feedback.md
 # ═════════════════════════════════════════════════════════════════
 
 divider
-printf "\n  ${GREEN}◆ Step 3/4 — GLOBAL-INSTRUCTIONS.md${RESET}\n"
+printf "\n  ${GREEN}◆ Step 3/5 — feedback.md${RESET}\n"
+dim "Define how the agent should request and handle feedback."
+printf "\n  ${CREAM}Enable feedback configuration?${RESET}\n"
+
+prompt_choice "Yes" "No" && FEEDBACK_CHOICE=1 || FEEDBACK_CHOICE=2
+
+case $FEEDBACK_CHOICE in
+1)
+    ensure_about_me_dir
+    copy_template "ABOUT-ME/feedback.md"
+    success "feedback.md — enabled"
+    ;;
+2)
+    SKIP_FEEDBACK=true
+    success "feedback.md — disabled"
+    ;;
+esac
+
+
+# ═════════════════════════════════════════════════════════════════
+# STEP 4: GLOBAL-INSTRUCTIONS.md
+# ═════════════════════════════════════════════════════════════════
+
+divider
+printf "\n  ${GREEN}◆ Step 4/5 — GLOBAL-INSTRUCTIONS.md${RESET}\n"
 dim "Boot sequence, folder protocol, naming, and domain defaults."
 
 prompt_choice_skip "Use default" "Customize"
@@ -405,19 +447,15 @@ esac
 
 
 # ═════════════════════════════════════════════════════════════════
-# STEP 4: Finalize
+# STEP 5: Finalize
 # ═════════════════════════════════════════════════════════════════
 
 divider
-printf "\n  ${GREEN}◆ Step 4/4 — Finalize${RESET}\n\n"
+printf "\n  ${GREEN}◆ Step 5/5 — Finalize${RESET}\n\n"
 
 # ── Post-config cleanup ──
-# Create feedback.md if ABOUT-ME/ has any configured files.
-# Remove ABOUT-ME/ entirely if both sections were skipped.
-if ! $SKIP_ABOUT_ME || ! $SKIP_WRITING_STYLE; then
-    copy_template "ABOUT-ME/feedback.md"
-else
-    # Both skipped — remove the directory if it exists (may be empty or absent)
+# Remove ABOUT-ME/ entirely if all its sections were skipped.
+if $SKIP_ABOUT_ME && $SKIP_WRITING_STYLE && $SKIP_FEEDBACK; then
     rm -rf "$TARGET/ABOUT-ME"
 fi
 
@@ -438,6 +476,7 @@ printf "\n  ${GREEN}✓${RESET} Interactive configuration complete.\n\n"
 CONFIGURED=()
 $SKIP_ABOUT_ME      || CONFIGURED+=("CLAUDE/ABOUT-ME/about-me.md")
 $SKIP_WRITING_STYLE || CONFIGURED+=("CLAUDE/ABOUT-ME/anti-ai-writing-style.md")
+$SKIP_FEEDBACK      || CONFIGURED+=("CLAUDE/ABOUT-ME/feedback.md")
 $SKIP_GLOBAL        || CONFIGURED+=("CLAUDE/GLOBAL-INSTRUCTIONS.md")
 
 if [ ${#CONFIGURED[@]} -gt 0 ]; then
@@ -453,6 +492,7 @@ fi
 SKIPPED=()
 $SKIP_ABOUT_ME      && SKIPPED+=("about-me.md")
 $SKIP_WRITING_STYLE && SKIPPED+=("anti-ai-writing-style.md")
+$SKIP_FEEDBACK      && SKIPPED+=("feedback.md")
 $SKIP_GLOBAL        && SKIPPED+=("GLOBAL-INSTRUCTIONS.md")
 
 if [ ${#SKIPPED[@]} -gt 0 ]; then
