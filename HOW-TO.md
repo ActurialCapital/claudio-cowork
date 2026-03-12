@@ -9,78 +9,115 @@ A complete walkthrough for setting up, customizing, and extending the claudio-co
 1. [How It Works End-to-End](#how-it-works-end-to-end)
 2. [Prerequisites](#prerequisites)
 3. [Initial Setup](#initial-setup)
-4. [Configuring Cowork Settings](#configuring-cowork-settings)
-5. [Personalizing Your Profile](#personalizing-your-profile)
-6. [Configuring Global Instructions](#configuring-global-instructions)
-7. [Setting Up the Prompt Template and Mac Shortcut](#setting-up-the-prompt-template-and-mac-shortcut)
-8. [The Meta-Prompt Generator Skill](#the-meta-prompt-generator-skill)
-9. [The Feedback Loop](#the-feedback-loop)
-10. [Scheduled Output Audit](#scheduled-output-audit)
-11. [Adding Your Own Skills](#adding-your-own-skills)
-12. [Folder Architecture Deep Dive](#folder-architecture-deep-dive)
-13. [Troubleshooting](#troubleshooting)
+4. [The `make init` Process](#the-make-init-process)
+5. [Configuring Cowork Settings](#configuring-cowork-settings)
+6. [Personalizing Your Profile](#personalizing-your-profile)
+7. [Configuring Global Instructions](#configuring-global-instructions)
+8. [Setting Up the Prompt Template and Mac Shortcut](#setting-up-the-prompt-template-and-mac-shortcut)
+9. [The Meta-Prompt Generator Skill](#the-meta-prompt-generator-skill)
+10. [The Feedback Loop](#the-feedback-loop)
+11. [Scheduled Output Audit](#scheduled-output-audit)
+12. [Adding Your Own Skills](#adding-your-own-skills)
+13. [Folder Architecture Deep Dive](#folder-architecture-deep-dive)
+14. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## How It Works End-to-End
 
-This section walks through what happens from the moment you open Claude Cowork to the moment you receive a finished deliverable.
+This section walks through what happens from cloning the repo to receiving finished deliverables.
+
+### Setup Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  1. CLONE INSIDE YOUR PROJECT                                    │
+│     cd your-project/                                             │
+│     git clone <repo-url> claudio-cowork                          │
+│     cd claudio-cowork                                            │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────────┐
+│  2. RUN make init                                                │
+│     Step-by-step setup (each offers: 1. Default  2. Customize):  │
+│       → about-me.md         (project analysis or your answers)   │
+│       → anti-ai-writing-style.md   (accept or customize rules)   │
+│       → GLOBAL-INSTRUCTIONS.md     (accept or customize config)  │
+│       → Outputs final Global Instructions for copy/paste         │
+│     Then:                                                        │
+│       → Copies CLAUDE/ to your project root                      │
+│       → Asks whether to install skills (1. Yes / 2. No)          │
+│       → Adds claudio-cowork/ to .gitignore                       │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────────┐
+│  3. PASTE GLOBAL INSTRUCTIONS                                    │
+│     Settings → Cowork → Edit Global Instructions                 │
+│     Paste the output from make init                              │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────────┐
+│  4. MOUNT YOUR PROJECT                                           │
+│     Start Cowork session → Add Folder → select your project      │
+│     CLAUDE/ is now at your project root                          │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ### The Session Lifecycle
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  1. SESSION START                                               │
-│     You open Cowork → Add Folder → select        │
-│     Claude sees the folder structure but hasn't read anything   │
+│  1. SESSION START                                                │
+│     You open Cowork → Add Folder → select your project           │
+│     Claude sees the folder structure but hasn't read anything    │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
-│  2. BOOT SEQUENCE (triggered by Global Instructions)            │
-│     Claude reads:                                               │
-│       → about-me.md         (who you are, your stack)           │
-│       → anti-ai-writing-style.md  (how to write for you)        │
-│       → feedback.md         (accumulated corrections)           │
-│     Result: Claude has your full profile loaded in memory       │
+│  2. BOOT SEQUENCE (triggered by Global Instructions)             │
+│     Claude reads:                                                │
+│       → about-me.md         (who you are, your stack)            │
+│       → anti-ai-writing-style.md  (how to write for you)         │
+│       → feedback.md         (accumulated corrections)            │
+│     Result: Claude has your full profile loaded in memory        │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
-│  3. YOU SEND A PROMPT                                           │
-│     Example (using /prompt shortcut):                           │
-│     "I want to build a funding rate arb strategy across BTC     │
-│      perps on Binance and Bybit. First, explore my CLAUDE       │
-│      COWORK folder. Then, ask me questions..."                  │
+│  3. YOU SEND A PROMPT                                            │
+│     Example (using /prompt shortcut):                            │
+│     "I want to build a funding rate arb strategy across BTC      │
+│      perps on Binance and Bybit. First, explore my CLAUDE        │
+│      folder. Then, ask me questions..."                          │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
-│  4. CONTEXT LOADING                                             │
-│     Claude checks PROJECTS/ for project context  │
-│     Claude checks SKILLS/ for matching skill or pattern      │
-│     If meta-prompt-generator matches → loads SKILL.md           │
+│  4. CONTEXT LOADING                                              │
+│     Claude checks CLAUDE/PROJECTS/ for project context           │
+│     Claude checks installed skills for matching pattern           │
+│     If meta-prompt-generator matches → loads SKILL.md            │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
-│  5. CLARIFICATION (AskUserQuestion)                             │
-│     Claude surfaces ambiguities as structured multiple-choice   │
-│     questions instead of guessing. You refine the approach      │
-│     before any code is written.                                 │
+│  5. CLARIFICATION (AskUserQuestion)                              │
+│     Claude surfaces ambiguities as structured multiple-choice    │
+│     questions instead of guessing. You refine the approach       │
+│     before any code is written.                                  │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
-│  6. EXECUTION                                                   │
-│     Claude writes code/docs/specs following:                    │
-│       → Your communication style (from about-me.md)             │
-│       → Your writing rules (from anti-ai-writing-style.md)      │
-│       → Domain defaults (from Global Instructions)              │
-│       → All corrections (from feedback.md)                      │
-│     Output saved to CLAUDE OUTPUTS/ with naming convention      │
+│  6. EXECUTION                                                    │
+│     Claude writes code/docs/specs following:                     │
+│       → Your communication style (from about-me.md)              │
+│       → Your writing rules (from anti-ai-writing-style.md)       │
+│       → Domain defaults (from Global Instructions)               │
+│       → All corrections (from feedback.md)                       │
+│     Output saved to CLAUDE/OUTPUTS/ with naming convention       │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
-│  7. POST-SESSION                                                │
-│     If Claude made a mistake → add correction to feedback.md    │
-│     If output quality was off → add style note to feedback.md   │
-│     Weekly audit (optional) → automated review of all outputs   │
+│  7. POST-SESSION                                                 │
+│     If Claude made a mistake → add correction to feedback.md     │
+│     If output quality was off → add style note to feedback.md    │
+│     Weekly audit (optional) → automated review of all outputs    │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -147,48 +184,163 @@ The output spec is designed so that any autonomous agent (Claude, GPT, a custom 
 
 ## Prerequisites
 
-You need Claude Desktop with Cowork mode enabled. Cowork is available on macOS and is currently in research preview. You also need a folder on your filesystem where this repo will live — Claude Cowork reads from and writes to this folder during sessions.
+You need Claude Desktop with Cowork mode enabled. Cowork is available on macOS and is currently in research preview. You also need an existing project (or at least a directory) where claudio-cowork will be cloned into.
 
 ---
 
 ## Initial Setup
 
-### Step 1: Clone the Repository
+### Step 1: Clone Inside Your Project
+
+Navigate to your existing project directory and clone claudio-cowork inside it:
 
 ```bash
+cd /path/to/your-project
 git clone https://github.com/<your-username>/claudio-cowork.git
 cd claudio-cowork
 ```
 
-### Step 2: Add Two Folders to Cowork
-
-Cowork supports multiple folders. You need to create one additional folder on your machine before starting:
+Your directory structure before init:
 
 ```
-CLAUDE OUTPUTS/
+your-project/
+├── your existing files (package.json, src/, etc.)
+└── claudio-cowork/
+    ├── Makefile
+    ├── CLAUDE/
+    ├── SKILLS/
+    ├── scripts/
+    │   └── init.sh
+    └── ...
 ```
 
-This is the write folder where Claude delivers finished work. Create it anywhere convenient (e.g., next to the cloned repo, or inside it if you prefer a single root). The `` repo itself is the read folder.
+### Step 2: Run `make init`
 
-When you start a new Cowork session, click **Add Folder** in the session start screen and select both:
-1. The `` directory (read context)
-2. The `CLAUDE OUTPUTS/` directory (write target)
+```bash
+make init
+```
 
-Claude will automatically detect the folder structure and follow the Global Instructions protocol.
+This launches the full setup sequence. First, `make init` copies the `CLAUDE/` template directory to your project root (templates inside `claudio-cowork/` are never modified). Then each configuration step presents a choice:
+
+```
+1. Use default
+2. Customize
+```
+
+Select **1** to accept the default and move on, or **2** to enter a guided customization flow where you answer targeted questions. All changes are written to `project-root/CLAUDE/`. Once configuration completes, `make init`:
+
+1. Asks whether to install skills (**1. Yes** / **2. No**). If yes, packages and installs all skills from `SKILLS/` (runs `make skills`). If no, skips — you can always run `make skills` later.
+2. Adds `claudio-cowork/` to the project root `.gitignore` (creating the file if it does not exist)
+
+After `make init`, your project looks like this:
+
+```
+your-project/
+├── .gitignore                            ← claudio-cowork/ entry added
+├── your existing files (package.json, src/, etc.)
+├── claudio-cowork/                       ← Stays local, git-ignored
+└── CLAUDE/                               ← Installed by make init
+    ├── ABOUT-ME/
+    ├── PROJECTS/
+    ├── OUTPUTS/
+    ├── GLOBAL-INSTRUCTIONS.md
+    └── PROMPT-TEMPLATE.md
+```
+
+The `claudio-cowork/` directory remains on disk but is git-ignored — it is never committed to your repository.
+
+See [The `make init` Process](#the-make-init-process) for the full step-by-step breakdown.
 
 ### Step 3: Paste Global Instructions
 
-Open Claude Desktop, go to **Settings → Cowork → Edit Global Instructions**, and paste everything from `GLOBAL-INSTRUCTIONS.md` below the dotted line. This tells Claude how to use the folder system for every session going forward.
+During `make init`, Claude outputs the final `GLOBAL-INSTRUCTIONS.md` content in the terminal. Copy it and paste into **Settings → Cowork → Edit Global Instructions** in Claude Desktop.
 
-### Step 4: Verify
+### Step 4: Accept Skill Installs
+
+During `make init`, you are asked whether to install skills. If you select **1 (Yes)**, skills are packaged and opened for install — accept the install prompts in Claude Desktop for each skill. If you skipped, you can run `make skills` later from the `claudio-cowork/` directory.
+
+### Step 5: Mount Your Project
+
+Start a new Cowork session and click **Add Folder** → select your project directory (which now contains `CLAUDE/`). Claude will automatically detect the folder structure and follow the Global Instructions protocol.
+
+### Step 6: Verify
 
 Start a new Cowork session and type:
 
 ```
-Summarize what you know about me from the CLAUDE COWORK folder.
+Summarize what you know about me from the CLAUDE folder.
 ```
 
 Claude should read your `about-me.md`, `anti-ai-writing-style.md`, and `feedback.md`, then give you a summary that reflects your profile. If it doesn't reference your specific stack, domains, or writing rules, check that the folder was mounted correctly.
+
+---
+
+## The `make init` Process
+
+`make init` orchestrates a complete setup sequence. Template files inside `claudio-cowork/CLAUDE/` are never modified — all configuration writes go to `project-root/CLAUDE/`.
+
+### Step 1: Install Templates into Project Root
+
+The `CLAUDE/` template directory is copied from `claudio-cowork/` to your project root. If `CLAUDE/` already exists at the project root, files are merged without overwriting existing files. This happens before any configuration so that all subsequent writes target the project-root copy.
+
+### Step 2: Configure `about-me.md`
+
+This step uses a different prompt from the other steps:
+
+```
+1. Context        → Claude analyzes the project root (repo structure, configs,
+                    README, codebase signals) and generates about-me.md
+                    automatically. Requires the Claude CLI.
+2. Customize      → Guided questions: what you're building, who you are,
+                    daily work, domains, goals, stack, communication style,
+                    intended outcomes, and output values.
+                    Generates a profile from your answers.
+```
+
+### Step 3: Configure `anti-ai-writing-style.md`
+
+Writing rules for tone, banned phrases, and domain conventions.
+
+```
+1. Use default    → Keeps the template as-is.
+2. Customize      → Asks: preferred tone, phrases to ban, domain-specific
+                    writing conventions, and additional rules.
+                    Appends your customizations to the project-root copy.
+```
+
+### Step 4: Configure `GLOBAL-INSTRUCTIONS.md`
+
+Boot sequence, folder protocol, naming conventions, and operating rules.
+
+```
+1. Use default    → Keeps the template as-is.
+2. Customize      → Asks: naming convention, domain-specific defaults,
+                    and additional operating rules.
+                    Appends your customizations to the project-root copy.
+```
+
+### Step 5: Finalize Global Instructions
+
+The script outputs the final `GLOBAL-INSTRUCTIONS.md` content between clearly marked copy lines. Copy everything between the markers and paste it into **Settings → Cowork → Edit Global Instructions**.
+
+After this step the script exits and `make init` continues automatically with the remaining steps.
+
+### Step 6: Install Skills (Optional)
+
+You are prompted to install skills:
+
+```
+1. Yes
+2. No
+```
+
+Select **1** to package and install all skills from `SKILLS/` as `.skill` files, opened for install in Claude Desktop. Accept the install prompts for each skill. Select **2** to skip — you can always run `make skills` later.
+
+### Step 7: Add `claudio-cowork/` to `.gitignore`
+
+The `claudio-cowork/` entry is added to the project root `.gitignore`. If `.gitignore` does not exist, it is created automatically. If the entry already exists, this step is a no-op.
+
+The directory is not deleted. It stays on disk for future reference (re-running `make skills`, checking documentation, etc.) but is never committed to your repository.
 
 ---
 
@@ -205,13 +357,14 @@ Open Claude Desktop and click the **gear icon** (Settings) in the bottom-left co
 This is the most important setting. Global Instructions are injected into every Cowork session before Claude processes your first message. They act as a persistent system prompt.
 
 **To configure:**
-1. In Settings, find **Cowork → Edit Global Instructions**
-2. Paste everything from `GLOBAL-INSTRUCTIONS.md` (below the dotted line) into the text area
-3. Click **Save**
+1. Run `make init` (which generates and outputs the instructions) OR open `CLAUDE/GLOBAL-INSTRUCTIONS.md` manually
+2. In Settings, find **Cowork → Edit Global Instructions**
+3. Paste everything below the dotted line into the text area
+4. Click **Save**
 
-These instructions tell Claude to read your `ABOUT-ME/` folder before every task, follow your writing rules, use the folder protocol, and apply your domain defaults. Without this step, the folder structure has no effect — Claude won't know to read it.
+These instructions tell Claude to read your `CLAUDE/ABOUT-ME/` folder before every task, follow your writing rules, use the folder protocol, and apply your domain defaults. Without this step, the folder structure has no effect — Claude won't know to read it.
 
-**When to update:** Any time you change `GLOBAL-INSTRUCTIONS.md` in the repo (adding new domain defaults, changing naming conventions, updating folder paths), re-paste the content into this settings field. The file in the repo is the canonical version; the settings field is the deployed version.
+**When to update:** Any time you change `CLAUDE/GLOBAL-INSTRUCTIONS.md` in your project (adding new domain defaults, changing naming conventions, updating folder paths), re-paste the content into this settings field. The file in your project is the canonical version; the settings field is the deployed version.
 
 ### Connectors
 
@@ -230,12 +383,7 @@ Plugins are bundles of skills, connectors, and tools that extend Cowork's capabi
 
 ### Folder Access
 
-When you start a Cowork session, you select folders via **Add Folder** on the session start screen. Cowork remembers previously selected folders but you can change them per session. The system expects at minimum:
-
-1. **The  directory** — contains your profile, skills, and projects
-2. **A write directory** (e.g., `CLAUDE OUTPUTS/`) — where Claude delivers work
-
-Projects live inside `PROJECTS/` — one subfolder per project. No separate mount needed.
+When you start a Cowork session, you select folders via **Add Folder** on the session start screen. Cowork remembers previously selected folders but you can change them per session. After running `make init`, mount your project directory — it now contains `CLAUDE/` at the root with your profile, projects, and outputs.
 
 ### Scheduled Tasks
 
@@ -247,9 +395,9 @@ To view and manage scheduled tasks: ask Claude "list my scheduled tasks" in any 
 
 ## Personalizing Your Profile
 
-### `ABOUT-ME/about-me.md`
+After running `make init`, your `about-me.md` will already be populated. You can further refine it at any time.
 
-This file is a template. Replace every section with your own information.
+### `CLAUDE/ABOUT-ME/about-me.md`
 
 **Sections to customize:**
 
@@ -265,7 +413,7 @@ This file is a template. Replace every section with your own information.
 
 The more specific you are, the better Claude calibrates. Saying "Python" is less useful than "Python 3.12, heavy numpy/pandas, some Cython for hot paths." Saying "ML" is less useful than "gradient boosted trees for tabular data, PyTorch for sequence models, no deep learning hype."
 
-### `ABOUT-ME/anti-ai-writing-style.md`
+### `CLAUDE/ABOUT-ME/anti-ai-writing-style.md`
 
 This file has two parts: a kill list (what Claude must never do) and positive rules (how Claude should write instead).
 
@@ -279,31 +427,30 @@ This file has two parts: a kill list (what Claude must never do) and positive ru
 
 ## Configuring Global Instructions
 
-Global Instructions are the control plane. They tell Claude what to read, where to write, and what rules to follow before every task.
+Global Instructions are the control plane. They tell Claude what to read, where to write, and what rules to follow before every task. `make init` handles the initial configuration, but you can edit them at any time.
 
 ### Key Sections
 
-**BEFORE EVERY TASK** — This is the boot sequence. Claude reads all files in `ABOUT-ME/` (including `feedback.md`), checks for relevant project context, and loads applicable skills. Never remove the instruction to read `feedback.md` — that's how corrections accumulate.
+**BEFORE EVERY TASK** — This is the boot sequence. Claude reads all files in `CLAUDE/ABOUT-ME/` (including `feedback.md`), checks for relevant project context, and loads applicable skills. Never remove the instruction to read `feedback.md` — that's how corrections accumulate.
 
-**FOLDER PROTOCOL** — Defines three read-only folders and one write folder. Adjust the folder names if your structure differs:
+**FOLDER PROTOCOL** — Defines read-only folders and one write folder. Adjust the folder names if your structure differs:
 
 ```
-Read-only (all inside ):
-  ABOUT-ME/     → Identity and preferences
-  SKILLS/    → Reusable patterns and skills
-  PROJECTS/     → Project-specific context
+Read-only — never create, edit, or delete anything here:
+  CLAUDE/ABOUT-ME/     → Identity and preferences
+  CLAUDE/PROJECTS/     → Project-specific context
 
 Write:
-  CLAUDE OUTPUTS/ → Everything Claude creates goes here
+  CLAUDE/OUTPUTS/      → Everything Claude creates goes here
 ```
 
-**NAMING CONVENTION** — The default format is `project_content-type_v1.ext`. Content types include: analysis, model, backtest, pipeline, dashboard, report, spec, script, notebook, doc. Modify these to match your domain.
+**NAMING CONVENTION** — The default format is `project_content-type_v1.ext`. Content types include: analysis, model, pipeline, report, spec, script, notebook, doc. Modify these to match your domain.
 
-**DOMAIN DEFAULTS** — Domain-specific rules that apply unless overridden. The template includes defaults for equities, crypto, macro, risk, and backtests. Replace with your domain's conventions. A web developer might add: "React: functional components only, no class components. CSS: Tailwind utility classes, no inline styles."
+**OPERATING RULES** — Domain-specific rules that apply unless overridden. The template includes sensible defaults for code quality, data pipelines, and technical writing. Replace or extend with your domain's conventions.
 
 ### Updating Global Instructions
 
-When you change `GLOBAL-INSTRUCTIONS.md` in the repo, you also need to re-paste it into **Settings → Cowork → Edit Global Instructions**. The file in the repo is the canonical version; the Cowork settings are the deployed version.
+When you change `CLAUDE/GLOBAL-INSTRUCTIONS.md` in your project, you also need to re-paste it into **Settings → Cowork → Edit Global Instructions**. The file in your project is the canonical version; the Cowork settings are the deployed version.
 
 ---
 
@@ -314,7 +461,7 @@ When you change `GLOBAL-INSTRUCTIONS.md` in the repo, you also need to re-paste 
 The core prompt template is deliberately simple:
 
 ```
-I want to [TASK] to [SUCCESS CRITERIA]. First, explore my CLAUDE COWORK folder.
+I want to [TASK] to [SUCCESS CRITERIA]. First, explore my CLAUDE folder.
 Then, ask me questions using the AskUserQuestion tool. I want to refine the
 approach with you before you execute.
 ```
@@ -331,7 +478,7 @@ macOS has a built-in text replacement feature that works system-wide.
 4. In the **Replace** field, type: `/prompt`
 5. In the **With** field, paste the full template text:
    ```
-   I want to [TASK] to [SUCCESS CRITERIA]. First, explore my CLAUDE COWORK folder. Then, ask me questions using the AskUserQuestion tool. I want to refine the approach with you before you execute.
+   I want to [TASK] to [SUCCESS CRITERIA]. First, explore my CLAUDE folder. Then, ask me questions using the AskUserQuestion tool. I want to refine the approach with you before you execute.
    ```
 6. Click **Add** or press Enter
 
@@ -341,10 +488,6 @@ Now, anywhere on your Mac — in the Claude Desktop chat, in Notes, in any text 
 - The shortcut works in Claude Desktop's chat input field
 - You can create multiple shortcuts: `/prompt-backtest`, `/prompt-pipeline`, `/prompt-dashboard` — each pre-filled with domain-specific task language
 - If the shortcut doesn't expand, check that text replacement is enabled in **System Settings → Keyboard → Text Input → Text Replacements**
-
-### Domain-Specific Shortcut Examples
-
-The `PROMPT-TEMPLATE.md` file includes 8 ready-made examples across systematic equities, crypto, macro, data pipelines, full-stack features, ML models, portfolio analysis, and client deliverables. Use these as starting points for your own shortcuts.
 
 ---
 
@@ -363,24 +506,11 @@ It produces a YAML+Markdown specification with: objective, scope/out-of-scope, g
 
 ### How to Install the Skill
 
-**Option A — `make skills` (recommended).** From the repo root:
+**Automatic (via `make init`).** Skills are automatically packaged and installed during `make init`. Claude Desktop will show an install prompt for each skill — accept it. Once installed, skills auto-trigger by phrase matching in every future session.
 
-```bash
-make skills
-```
+**Manual (if needed later).** The `claudio-cowork/` directory stays on disk (git-ignored). Navigate into it and run `make skills` to package and install new or updated skills.
 
-This finds all skills in `SKILLS/`, packages them as `.skill` files, and opens each one for install. Claude Desktop will show an install prompt for each skill — accept it. Once installed, skills auto-trigger by phrase matching in every future session. Re-running `make skills` skips already-packaged skills.
-
-**Option B — Explicit reference (no install needed).** When you add the `` directory to a Cowork session, tell Claude to read the skill in your prompt:
-
-```
-Read SKILLS/meta-prompt-generator/SKILL.md and use it.
-I have an idea for [your idea]. Turn this into a spec. Ask me questions first.
-```
-
-This works immediately with no setup. Claude reads the SKILL.md and follows it.
-
-**What gets installed:** Only `SKILL.md` and `references/` are included in the `.skill` package. The `evals/` folder is excluded — it's for testing and improving the skill, not for runtime use. It stays in the repo.
+**What gets installed:** Only `SKILL.md` and `references/` are included in the `.skill` package. The `evals/` folder is excluded — it's for testing and improving the skill, not for runtime use.
 
 ### How to Trigger It
 
@@ -398,7 +528,7 @@ Or drop in a codebase, doc, or braindump and say:
 - "Productionize this"
 - "Write instructions an AI can follow"
 
-**If not installed (Option B),** include "Read SKILLS/meta-prompt-generator/SKILL.md and use it" in your prompt.
+Skills are installed automatically during `make init`, so manual triggering is typically not needed.
 
 ### How It Works Internally
 
@@ -461,7 +591,7 @@ The skill went through two iteration cycles with detailed human evaluation feedb
 
 ## The Feedback Loop
 
-`ABOUT-ME/feedback.md` is the simplest and most powerful component. It's a plain text file with one correction per line:
+`CLAUDE/ABOUT-ME/feedback.md` is the simplest and most powerful component. It's a plain text file with one correction per line:
 
 ```markdown
 - [2026-03-10] Initial setup. Add corrections here as they come up.
@@ -490,8 +620,8 @@ The system includes an optional scheduled task that automatically reviews Claude
 
 The `weekly-output-audit` task:
 1. Opens a new Cowork session at the scheduled time
-2. Reads your `ABOUT-ME/` folder (profile, writing rules, feedback log)
-3. Scans the `CLAUDE OUTPUTS/` folder for files created since the last audit
+2. Reads your `CLAUDE/ABOUT-ME/` folder (profile, writing rules, feedback log)
+3. Scans the `CLAUDE/OUTPUTS/` folder for files created since the last audit
 4. Grades each file against your `anti-ai-writing-style.md` rules
 5. Checks domain-specific requirements (risk metrics in financial outputs, type hints in code, etc.)
 6. Produces an audit report with specific violations, quality scores, and suggested corrections
@@ -507,7 +637,7 @@ In any Cowork session, ask Claude:
 
 ```
 Create a scheduled task called "weekly-output-audit" that runs every Friday at 1pm.
-It should review all files in CLAUDE OUTPUTS/ created this week, grade them against
+It should review all files in CLAUDE/OUTPUTS/ created this week, grade them against
 my anti-ai-writing-style.md and Global Instructions, and produce an audit report
 with specific violations and suggested feedback.md corrections.
 ```
@@ -577,19 +707,19 @@ The audit task's prompt is fully customizable. Common modifications:
 
 ## Adding Your Own Skills
 
-Skills are folders containing a `SKILL.md` file with instructions that Claude loads when triggered. To create a new skill:
+Skills are folders containing a `SKILL.md` file with instructions that Claude loads when triggered. The `claudio-cowork/` directory remains on disk after `make init` (git-ignored), so you can add new skills directly to `SKILLS/` and re-run `make skills`.
 
-1. Create a folder under `SKILLS/`:
+**Option A — Add to `SKILLS/` and re-run `make skills`:**
+
+1. Create a folder under `claudio-cowork/SKILLS/`:
    ```
-   SKILLS/
+   claudio-cowork/SKILLS/
    └── my-new-skill/
        ├── SKILL.md          ← Required: instructions
        └── references/       ← Optional: reference docs
    ```
 
-2. Write the `SKILL.md` with YAML frontmatter (name, description, trigger phrases) and markdown body (instructions).
-
-3. The description field controls when the skill triggers. Be specific about trigger phrases:
+2. Write the `SKILL.md` with YAML frontmatter (name, description, trigger phrases) and markdown body (instructions). The description field controls when the skill triggers — be specific:
    ```yaml
    ---
    name: my-new-skill
@@ -599,7 +729,11 @@ Skills are folders containing a `SKILL.md` file with instructions that Claude lo
    ---
    ```
 
-4. Test the skill by asking Claude to perform the task in a Cowork session with the folder mounted.
+3. Run `make skills` from `claudio-cowork/` to package and install the new skill.
+
+**Option B — Use the skill-creator skill:** In any Cowork session, ask Claude to create a new skill. The skill-creator skill guides you through the process.
+
+Test the skill by asking Claude to perform the task in a Cowork session with your project folder mounted.
 
 ---
 
@@ -611,17 +745,16 @@ The system uses a strict read/write separation to prevent Claude from accidental
 
 | Folder | Purpose | Contents |
 |--------|---------|----------|
-| `ABOUT-ME/` | Identity and preferences | Profile, writing rules, correction log |
-| `SKILLS/` | Reusable patterns and skills | Skill instructions, reference docs, eval configs |
-| `PROJECTS/` | Project-specific context | Briefs, datasets, reference code |
+| `CLAUDE/ABOUT-ME/` | Identity and preferences | Profile, writing rules, correction log |
+| `CLAUDE/PROJECTS/` | Project-specific context | Briefs, datasets, reference code |
 
-All three are inside the `` directory. Claude reads from these folders to build context. It never creates, edits, or deletes files here (enforced by Global Instructions).
+After `make init`, these live at your project root inside `CLAUDE/`. Claude reads from these folders to build context. It never creates, edits, or deletes files here (enforced by Global Instructions). Skills are installed separately in Claude Desktop and trigger automatically by phrase matching.
 
 ### Write Folder
 
 | Folder | Purpose | Contents |
 |--------|---------|----------|
-| `CLAUDE OUTPUTS/` | Deliverables | Everything Claude creates, organized by project |
+| `CLAUDE/OUTPUTS/` | Deliverables | Everything Claude creates, organized by project |
 
 Claude writes all outputs here, using the naming convention defined in Global Instructions (`project_content-type_v1.ext`). It creates project subfolders as needed.
 
@@ -633,12 +766,18 @@ Without explicit folder protocols, Claude may write outputs alongside your conte
 
 ## Troubleshooting
 
-**Claude doesn't reference my profile.** Verify the folder is mounted in the current session (check the session start screen). Global Instructions must also be pasted into Settings — the `GLOBAL-INSTRUCTIONS.md` file in the repo is not automatically loaded.
+**Claude doesn't reference my profile.** Verify your project folder is mounted in the current session (check the session start screen) and that it contains `CLAUDE/` at the root. Global Instructions must also be pasted into Settings — the `CLAUDE/GLOBAL-INSTRUCTIONS.md` file is not automatically loaded.
 
 **Claude uses AI-speak despite the writing rules.** Add the specific phrase to `feedback.md` with the date. This creates an explicit override. If a pattern persists across sessions, check that `anti-ai-writing-style.md` has the phrase in the kill list and that Global Instructions include the line "Follow every rule in `anti-ai-writing-style.md` for all outputs."
 
-**The meta-prompt skill doesn't trigger.** If the skill is only in the `SKILLS/` folder (not copied to the Cowork skills directory), you need to explicitly reference it: "Read the meta-prompt-generator skill and use it to spec this out." For automatic triggering, copy the skill folder to your Cowork skills directory.
+**The meta-prompt skill doesn't trigger.** Skills are installed automatically during `make init`. If a skill isn't triggering, check that you accepted the install prompt in Claude Desktop. You can reinstall by navigating to `claudio-cowork/` and running `make skills`.
 
 **Mac text shortcut doesn't expand.** Check **System Settings → Keyboard → Text Input → Text Replacements**. The shortcut must be listed there. Some apps (particularly Electron-based) may delay expansion — press space or return after typing `/prompt` to trigger it.
 
-**Claude writes to the wrong folder.** Check that Global Instructions specify the correct write folder path. The instructions must match the actual folder name you created and mounted.
+**Claude writes to the wrong folder.** Check that Global Instructions specify the correct write folder path. The instructions must match the actual `CLAUDE/OUTPUTS/` folder in your project.
+
+**`make init` doesn't find my project context.** Make sure you cloned `claudio-cowork` inside your project directory (not alongside it). Claude looks at the parent directory (`../`) for project files. If your project has an unusual structure, you can always answer Claude's questions manually during the init process.
+
+**`make init` hangs or doesn't accept input.** The init script reads input from stdin. Make sure you're running `make init` in a standard terminal (not piped, not inside another Claude session). If the script hangs after printing "Configuration complete," check that `scripts/init.sh` is executable (`chmod +x scripts/init.sh`).
+
+**Need to re-run setup.** `claudio-cowork/` is not deleted — it stays on disk, git-ignored. Navigate into it and run `make init` again. If `CLAUDE/` already exists at the project root, existing files are preserved during the copy.

@@ -1,6 +1,7 @@
 # Anti-AI Writing Style Guide
 
 ## Purpose
+
 This file defines how Claude must write for me. Follow every rule in every output — documents, code comments, emails, reports, Slack messages, everything. No exceptions.
 
 ---
@@ -111,4 +112,4 @@ This file defines how Claude must write for me. Follow every rule in every outpu
 ---
 
 ## The Test
-Before delivering any output: "Would a senior quant/engineer find this useful, or would they skim past it?" If they'd skim it, cut it.
+Before delivering any output: "Would a senior developer find this useful, or would they skim past it?" If they'd skim it, cut it.
