@@ -31,7 +31,7 @@ This section walks through what happens from the moment you open Claude Cowork t
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  1. SESSION START                                               │
-│     You open Cowork → Add Folder → select claudio-cowork/       │
+│     You open Cowork → Add Folder → select        │
 │     Claude sees the folder structure but hasn't read anything   │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
@@ -54,7 +54,7 @@ This section walks through what happens from the moment you open Claude Cowork t
                            │
 ┌──────────────────────────▼──────────────────────────────────────┐
 │  4. CONTEXT LOADING                                             │
-│     Claude checks claudio-cowork/PROJECTS/ for project context  │
+│     Claude checks PROJECTS/ for project context  │
 │     Claude checks SKILLS/ for matching skill or pattern      │
 │     If meta-prompt-generator matches → loads SKILL.md           │
 └──────────────────────────┬──────────────────────────────────────┘
@@ -168,10 +168,10 @@ Cowork supports multiple folders. You need to create one additional folder on yo
 CLAUDE OUTPUTS/
 ```
 
-This is the write folder where Claude delivers finished work. Create it anywhere convenient (e.g., next to the cloned repo, or inside it if you prefer a single root). The `claudio-cowork/` repo itself is the read folder.
+This is the write folder where Claude delivers finished work. Create it anywhere convenient (e.g., next to the cloned repo, or inside it if you prefer a single root). The `` repo itself is the read folder.
 
 When you start a new Cowork session, click **Add Folder** in the session start screen and select both:
-1. The `claudio-cowork/` directory (read context)
+1. The `` directory (read context)
 2. The `CLAUDE OUTPUTS/` directory (write target)
 
 Claude will automatically detect the folder structure and follow the Global Instructions protocol.
@@ -232,10 +232,10 @@ Plugins are bundles of skills, connectors, and tools that extend Cowork's capabi
 
 When you start a Cowork session, you select folders via **Add Folder** on the session start screen. Cowork remembers previously selected folders but you can change them per session. The system expects at minimum:
 
-1. **The claudio-cowork/ directory** — contains your profile, skills, and projects
+1. **The  directory** — contains your profile, skills, and projects
 2. **A write directory** (e.g., `CLAUDE OUTPUTS/`) — where Claude delivers work
 
-Projects live inside `claudio-cowork/PROJECTS/` — one subfolder per project. No separate mount needed.
+Projects live inside `PROJECTS/` — one subfolder per project. No separate mount needed.
 
 ### Scheduled Tasks
 
@@ -288,7 +288,7 @@ Global Instructions are the control plane. They tell Claude what to read, where 
 **FOLDER PROTOCOL** — Defines three read-only folders and one write folder. Adjust the folder names if your structure differs:
 
 ```
-Read-only (all inside claudio-cowork/):
+Read-only (all inside ):
   ABOUT-ME/     → Identity and preferences
   SKILLS/    → Reusable patterns and skills
   PROJECTS/     → Project-specific context
@@ -371,10 +371,10 @@ make skills
 
 This finds all skills in `SKILLS/`, packages them as `.skill` files, and opens each one for install. Claude Desktop will show an install prompt for each skill — accept it. Once installed, skills auto-trigger by phrase matching in every future session. Re-running `make skills` skips already-packaged skills.
 
-**Option B — Explicit reference (no install needed).** When you add the `claudio-cowork/` directory to a Cowork session, tell Claude to read the skill in your prompt:
+**Option B — Explicit reference (no install needed).** When you add the `` directory to a Cowork session, tell Claude to read the skill in your prompt:
 
 ```
-Read claudio-cowork/SKILLS/meta-prompt-generator/SKILL.md and use it.
+Read SKILLS/meta-prompt-generator/SKILL.md and use it.
 I have an idea for [your idea]. Turn this into a spec. Ask me questions first.
 ```
 
@@ -398,7 +398,7 @@ Or drop in a codebase, doc, or braindump and say:
 - "Productionize this"
 - "Write instructions an AI can follow"
 
-**If not installed (Option B),** include "Read claudio-cowork/SKILLS/meta-prompt-generator/SKILL.md and use it" in your prompt.
+**If not installed (Option B),** include "Read SKILLS/meta-prompt-generator/SKILL.md and use it" in your prompt.
 
 ### How It Works Internally
 
@@ -611,11 +611,11 @@ The system uses a strict read/write separation to prevent Claude from accidental
 
 | Folder | Purpose | Contents |
 |--------|---------|----------|
-| `claudio-cowork/ABOUT-ME/` | Identity and preferences | Profile, writing rules, correction log |
-| `claudio-cowork/SKILLS/` | Reusable patterns and skills | Skill instructions, reference docs, eval configs |
-| `claudio-cowork/PROJECTS/` | Project-specific context | Briefs, datasets, reference code |
+| `ABOUT-ME/` | Identity and preferences | Profile, writing rules, correction log |
+| `SKILLS/` | Reusable patterns and skills | Skill instructions, reference docs, eval configs |
+| `PROJECTS/` | Project-specific context | Briefs, datasets, reference code |
 
-All three are inside the `claudio-cowork/` directory. Claude reads from these folders to build context. It never creates, edits, or deletes files here (enforced by Global Instructions).
+All three are inside the `` directory. Claude reads from these folders to build context. It never creates, edits, or deletes files here (enforced by Global Instructions).
 
 ### Write Folder
 
