@@ -110,6 +110,71 @@ prompt_choice_skip() {
     done
 }
 
+# ── Init helpers ──
+
+# Ensure ABOUT-ME/ directory exists.
+# Called only when a file needs to be written there.
+ensure_about_me_dir() {
+    mkdir -p "$TARGET/ABOUT-ME"
+}
+
+# Copy a default template file without overwrite.
+# Usage: copy_template "ABOUT-ME/about-me.md"
+copy_template() {
+    local relpath="$1"
+    if [ ! -f "$TARGET/$relpath" ]; then
+        cp "$COWORK_DIR/CLAUDE/$relpath" "$TARGET/$relpath"
+    fi
+}
+
+# Print a step header. Uses INIT_STEP env var if set (init flow).
+# Usage: step_header "about-me.md" "Description text"
+step_header() {
+    local name="$1"
+    local desc="${2:-}"
+    if [ -n "${INIT_STEP:-}" ]; then
+        printf "\n  ${GREEN}◆ ${INIT_STEP} — ${name}${RESET}\n"
+    else
+        printf "\n  ${GREEN}◆ ${name}${RESET}\n"
+    fi
+    [ -n "$desc" ] && dim "$desc"
+}
+
+# ── Init state management ──
+# Lightweight key-value store for passing skip flags between
+# modular init scripts. State lives in a temp file at project root.
+# In standalone mode (no state file), writes are no-ops and reads
+# return the supplied default.
+
+INIT_STATE_FILE="$PROJECT_ROOT/.claudio-init-state"
+
+state_init() {
+    : > "$INIT_STATE_FILE"
+}
+
+state_set() {
+    local key="$1" value="$2"
+    [ ! -f "$INIT_STATE_FILE" ] && return 0
+    grep -v "^${key}=" "$INIT_STATE_FILE" > "${INIT_STATE_FILE}.tmp" 2>/dev/null || true
+    mv "${INIT_STATE_FILE}.tmp" "$INIT_STATE_FILE"
+    echo "${key}=${value}" >> "$INIT_STATE_FILE"
+}
+
+state_get() {
+    local key="$1" default="${2:-}"
+    if [ -f "$INIT_STATE_FILE" ]; then
+        local val
+        val=$(grep "^${key}=" "$INIT_STATE_FILE" 2>/dev/null | tail -1 | cut -d= -f2-)
+        echo "${val:-$default}"
+    else
+        echo "$default"
+    fi
+}
+
+state_cleanup() {
+    rm -f "$INIT_STATE_FILE" "${INIT_STATE_FILE}.tmp"
+}
+
 # ── Filesystem helpers ──
 
 # Ensure an entry exists in a file (idempotent append).

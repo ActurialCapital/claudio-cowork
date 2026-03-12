@@ -98,7 +98,9 @@ your-project/
     └── PROMPT-TEMPLATE.md                ← Reusable prompt + Mac shortcut setup
 ```
 
-Skipped sections produce no files or directories. If both `about-me.md` and `anti-ai-writing-style.md` are skipped, the `ABOUT-ME/` directory is not created. `GLOBAL-INSTRUCTIONS.md` dynamically adapts to reference only the sections that exist.
+Skipped sections produce no files or directories. If `about-me.md`, `anti-ai-writing-style.md`, and `feedback.md` are all skipped, the `ABOUT-ME/` directory is not created. `GLOBAL-INSTRUCTIONS.md` dynamically adapts to reference only the sections that exist.
+
+Each configuration module can also run independently: `make about-me`, `make code-style`, `make feedback`, `make global-instructions`.
 
 ---
 

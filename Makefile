@@ -1,4 +1,4 @@
-.PHONY: init skills plugins clean help
+.PHONY: init about-me code-style feedback global-instructions skills plugins clean help
 
 SKILLS_DIR := SKILLS
 DIST_DIR := dist
@@ -34,11 +34,15 @@ export LOGO
 help: ## Show available commands
 	@echo "$$LOGO"
 	@printf "  $(CREAM)Commands:$(RESET)\n"
-	@printf "  $(TERRA)make init$(RESET)    $(DIM)Run interactive Claude-driven setup$(RESET)\n"
-	@printf "  $(TERRA)make skills$(RESET)  $(DIM)Package and install all skills$(RESET)\n"
-	@printf "  $(TERRA)make plugins$(RESET) $(DIM)Install plugins from plugins.yaml$(RESET)\n"
-	@printf "  $(TERRA)make clean$(RESET)   $(DIM)Remove dist/$(RESET)\n"
-	@printf "  $(TERRA)make help$(RESET)    $(DIM)Show this message$(RESET)\n"
+	@printf "  $(TERRA)make init$(RESET)               $(DIM)Run interactive Claude-driven setup$(RESET)\n"
+	@printf "  $(TERRA)make about-me$(RESET)            $(DIM)Configure about-me.md$(RESET)\n"
+	@printf "  $(TERRA)make code-style$(RESET)          $(DIM)Configure anti-ai-writing-style.md$(RESET)\n"
+	@printf "  $(TERRA)make feedback$(RESET)            $(DIM)Configure feedback.md$(RESET)\n"
+	@printf "  $(TERRA)make global-instructions$(RESET) $(DIM)Configure GLOBAL-INSTRUCTIONS.md$(RESET)\n"
+	@printf "  $(TERRA)make skills$(RESET)              $(DIM)Package and install all skills$(RESET)\n"
+	@printf "  $(TERRA)make plugins$(RESET)             $(DIM)Install plugins from plugins.yaml$(RESET)\n"
+	@printf "  $(TERRA)make clean$(RESET)               $(DIM)Remove dist/$(RESET)\n"
+	@printf "  $(TERRA)make help$(RESET)                $(DIM)Show this message$(RESET)\n"
 	@echo ""
 
 init: ## Interactive Claude-driven setup for your project
@@ -62,6 +66,26 @@ init: ## Interactive Claude-driven setup for your project
 	@printf "  $(DIM)$(CREAM)claudio-cowork/ is git-ignored and stays local.$(RESET)\n"
 	@printf "  $(TERRA)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
 	@echo ""
+
+about-me: ## Configure about-me.md standalone
+	@echo "$$LOGO"
+	@bash scripts/templates.sh
+	@bash scripts/about-me.sh
+
+code-style: ## Configure anti-ai-writing-style.md standalone
+	@echo "$$LOGO"
+	@bash scripts/templates.sh
+	@bash scripts/code-style.sh
+
+feedback: ## Configure feedback.md standalone
+	@echo "$$LOGO"
+	@bash scripts/templates.sh
+	@bash scripts/feedback.sh
+
+global-instructions: ## Configure GLOBAL-INSTRUCTIONS.md standalone
+	@echo "$$LOGO"
+	@bash scripts/templates.sh
+	@bash scripts/global-instructions.sh
 
 plugins: ## Install plugins from plugins.yaml
 	@echo "$$LOGO"

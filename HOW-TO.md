@@ -127,6 +127,21 @@ Adds `claudio-cowork/` to project root `.gitignore`. Creates the file if needed.
 
 ---
 
+## Standalone Targets
+
+Each configuration module can run independently, outside the full `make init` flow. Useful for reconfiguring a single section after initial setup.
+
+| Command | What it does |
+|---------|-------------|
+| `make about-me` | Configure `about-me.md` (Context / Customize / Skip) |
+| `make code-style` | Configure `anti-ai-writing-style.md` (Default / Customize / Skip) |
+| `make feedback` | Configure `feedback.md` (Yes / No) |
+| `make global-instructions` | Configure `GLOBAL-INSTRUCTIONS.md` — infers which ABOUT-ME/ files exist on disk |
+
+Standalone targets create the `CLAUDE/` skeleton if it doesn't exist and use the same prompts as `make init`. The `global-instructions` target automatically detects which files are present to generate correct references.
+
+---
+
 ## Plugins Installation
 
 ```bash
@@ -298,6 +313,6 @@ Alternatively, ask Claude to create one using the skill-creator skill.
 
 **`make init` doesn't find project context.** Ensure `claudio-cowork` is cloned inside your project (not alongside it). Claude looks at `../` for project files.
 
-**Need to re-run setup.** `claudio-cowork/` stays on disk, git-ignored. Run `make init` again — existing files are preserved.
+**Need to re-run setup.** `claudio-cowork/` stays on disk, git-ignored. Run `make init` again — existing files are preserved. To reconfigure a single section, use standalone targets: `make about-me`, `make code-style`, `make feedback`, or `make global-instructions`.
 
 **Plugins dependencies missing.** `make plugins` prints manual install commands if `npx` or `claude` is unavailable. Install the dependencies and re-run.
