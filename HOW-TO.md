@@ -86,9 +86,16 @@ Creates the `CLAUDE/` directory skeleton at your project root: `PROJECTS/`, `OUT
 3. Skip        → File not created; writing rules excluded from GLOBAL-INSTRUCTIONS.md
 ```
 
-If both Steps 2 and 3 are skipped, the `ABOUT-ME/` directory is not created.
+### Step 4: Configure `feedback.md`
 
-### Step 4: Configure `GLOBAL-INSTRUCTIONS.md`
+```
+1. Yes → Create feedback.md (correction log for the agent)
+2. No  → File not created; feedback excluded from GLOBAL-INSTRUCTIONS.md
+```
+
+If Steps 2, 3, and 4 are all skipped/disabled, the `ABOUT-ME/` directory is not created.
+
+### Step 5: Configure `GLOBAL-INSTRUCTIONS.md`
 
 ```
 1. Use default → Generate standard control plane (accounts for skipped sections above)
@@ -96,22 +103,22 @@ If both Steps 2 and 3 are skipped, the `ABOUT-ME/` directory is not created.
 3. Skip        → File not created
 ```
 
-### Step 5: Finalize
+### Step 6: Finalize
 
 If not skipped, the script outputs `GLOBAL-INSTRUCTIONS.md` between copy markers. The script lists which files were configured and which were skipped.
 
-### Step 6: Install Skills
+### Step 7: Install Skills
 
 ```
 1. Yes → Package and install all skills from SKILLS/
 2. No  → Skip (run make skills later)
 ```
 
-### Step 7: Update `.gitignore`
+### Step 8: Update `.gitignore`
 
 Adds `claudio-cowork/` to project root `.gitignore`. Creates the file if needed. Idempotent.
 
-### Step 8: Install Plugins
+### Step 9: Install Plugins
 
 ```
 1. Yes → Install GSD + Superpowers (runs make plugins)

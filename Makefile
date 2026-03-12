@@ -46,7 +46,7 @@ init: ## Interactive Claude-driven setup for your project
 	@printf "  $(GREEN)◆ Starting interactive setup...$(RESET)\n"
 	@echo ""
 	@printf "  $(CREAM)Configure your project step by step.$(RESET)\n"
-	@printf "  $(DIM)Each step offers:  1) Use default   2) Customize$(RESET)\n"
+	@printf "  $(DIM)Each step lets you configure, use defaults, or skip.$(RESET)\n"
 	@echo ""
 	@printf "  $(TERRA)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
 	@echo ""

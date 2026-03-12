@@ -108,7 +108,7 @@ Skipped sections produce no files or directories. If both `about-me.md` and `ant
 |------|---------|
 | `ABOUT-ME/about-me.md` | Identity file — name, role, domains, tech stack, priorities, communication style. Claude reads this first to calibrate every output. |
 | `ABOUT-ME/anti-ai-writing-style.md` | Kill list of AI writing patterns plus positive rules for tone, structure, and domain conventions. |
-| `ABOUT-ME/feedback.md` | Running correction log. One line per fix. Read before every task, applied as overrides. Grows into a personalized fine-tuning layer. |
+| `ABOUT-ME/feedback.md` | Running correction log (optional). One line per fix. Read before every task, applied as overrides. Grows into a personalized fine-tuning layer. |
 | `GLOBAL-INSTRUCTIONS.md` | Control plane. Folder protocol (read-only + write), naming conventions, domain defaults. Paste into Cowork settings. |
 | `PROMPT-TEMPLATE.md` | Reusable prompt that forces context loading → clarification → execution. Includes Mac text shortcut setup. |
 | `PROJECTS/` | Project-specific briefs, references, datasets, and finished work. One subfolder per project. |
@@ -238,11 +238,12 @@ make init
 1. **Install structure** — Creates `CLAUDE/` skeleton at project root (`PROJECTS/`, `OUTPUTS/`, `TEMPLATES/`, `PROMPT-TEMPLATE.md`). Templates inside `claudio-cowork/` are never modified.
 2. **`about-me.md`** — Select **1 (Context)** to auto-generate from project analysis, **2 (Customize)** for guided questions, or **3 (Skip)**. Skipped = file not created.
 3. **`anti-ai-writing-style.md`** — Select **1** for defaults, **2** to customize, or **3 (Skip)**. Skipped = file not created.
-4. **`GLOBAL-INSTRUCTIONS.md`** — Select **1** for defaults, **2** to customize, or **3 (Skip)**. Skipped = file not created.
-5. **Finalize** — Outputs `GLOBAL-INSTRUCTIONS.md` content (references only configured sections). Copy into **Settings → Cowork → Edit Global Instructions**.
-6. **Install skills** — **1 (Yes)** or **2 (No)**. Run `make skills` later if skipped.
-7. **Update `.gitignore`** — Adds `claudio-cowork/` automatically.
-8. **Install plugins** — **1 (Yes)** or **2 (No)**. Run `make plugins` later if skipped.
+4. **`feedback.md`** — Select **1 (Yes)** to enable the correction log, or **2 (No)** to disable. Disabled = file not created.
+5. **`GLOBAL-INSTRUCTIONS.md`** — Select **1** for defaults, **2** to customize, or **3 (Skip)**. Skipped = file not created.
+6. **Finalize** — Outputs `GLOBAL-INSTRUCTIONS.md` content (references only configured sections). Copy into **Settings → Cowork → Edit Global Instructions**.
+7. **Install skills** — **1 (Yes)** or **2 (No)**. Run `make skills` later if skipped.
+8. **Update `.gitignore`** — Adds `claudio-cowork/` automatically.
+9. **Install plugins** — **1 (Yes)** or **2 (No)**. Run `make plugins` later if skipped.
 
 Full walkthrough: [`HOW-TO.md`](HOW-TO.md)
 

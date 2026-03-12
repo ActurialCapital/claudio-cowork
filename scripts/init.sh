@@ -111,21 +111,24 @@ generate_global_instructions() {
             ! $SKIP_WRITING_STYLE && about_parts+=("writing rules")
             ! $SKIP_FEEDBACK      && about_parts+=("correction log")
 
-            # Join parts with commas and trailing period
-            local about_desc=""
-            local i=0
-            for part in "${about_parts[@]}"; do
-                if [ $i -eq 0 ]; then
-                    # Capitalize first part
-                    about_desc="My ${part}"
-                elif [ $i -eq $(( ${#about_parts[@]} - 1 )) ]; then
-                    about_desc+=", and ${part}"
-                else
-                    about_desc+=", ${part}"
-                fi
-                i=$((i + 1))
-            done
-            about_desc+="."
+            # Join parts: "A.", "A and B.", or "A, B, and C."
+            local count=${#about_parts[@]}
+            local about_desc="My "
+            if [ "$count" -eq 1 ]; then
+                about_desc+="${about_parts[0]}."
+            elif [ "$count" -eq 2 ]; then
+                about_desc+="${about_parts[0]} and ${about_parts[1]}."
+            else
+                local i=0
+                for part in "${about_parts[@]}"; do
+                    if [ $i -eq $((count - 1)) ]; then
+                        about_desc+="and ${part}."
+                    else
+                        about_desc+="${part}, "
+                    fi
+                    i=$((i + 1))
+                done
+            fi
             echo "- \`CLAUDE/ABOUT-ME/\` → ${about_desc}"
         fi
 
