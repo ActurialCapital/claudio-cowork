@@ -1,7 +1,7 @@
 # ─────────────────────────────────────────────────────────────────
 # claudio-cowork plugin registry
 #
-# Single source of truth for all plugins installed by `make plugin`.
+# Single source of truth for all plugins installed by `make plugins`.
 # To add a plugin, append a new entry following the structure below.
 # The Bash installer reads this file — no script changes needed.
 #

@@ -1,4 +1,4 @@
-.PHONY: init skills plugin clean help
+.PHONY: init skills plugins clean help
 
 SKILLS_DIR := SKILLS
 DIST_DIR := dist
@@ -36,7 +36,7 @@ help: ## Show available commands
 	@printf "  $(CREAM)Commands:$(RESET)\n"
 	@printf "  $(TERRA)make init$(RESET)    $(DIM)Run interactive Claude-driven setup$(RESET)\n"
 	@printf "  $(TERRA)make skills$(RESET)  $(DIM)Package and install all skills$(RESET)\n"
-	@printf "  $(TERRA)make plugin$(RESET)  $(DIM)Install plugins from plugins.yaml$(RESET)\n"
+	@printf "  $(TERRA)make plugins$(RESET) $(DIM)Install plugins from plugins.yaml$(RESET)\n"
 	@printf "  $(TERRA)make clean$(RESET)   $(DIM)Remove dist/$(RESET)\n"
 	@printf "  $(TERRA)make help$(RESET)    $(DIM)Show this message$(RESET)\n"
 	@echo ""
@@ -56,16 +56,16 @@ init: ## Interactive Claude-driven setup for your project
 	@echo ""
 	@bash scripts/init-skills.sh $(MAKE)
 	@bash scripts/gitignore.sh
-	@bash scripts/init-plugin.sh $(MAKE)
+	@bash scripts/init-plugins.sh $(MAKE)
 	@printf "  $(TERRA)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
 	@printf "  $(DIM)$(CREAM)Setup complete. CLAUDE/ is now in your project root.$(RESET)\n"
 	@printf "  $(DIM)$(CREAM)claudio-cowork/ is git-ignored and stays local.$(RESET)\n"
 	@printf "  $(TERRA)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
 	@echo ""
 
-plugin: ## Install plugins from plugins.yaml
+plugins: ## Install plugins from plugins.yaml
 	@echo "$$LOGO"
-	@bash scripts/plugin.sh
+	@bash scripts/plugins.sh
 
 skills: $(SKILL_FILES) ## Package and install all skills
 	@bash scripts/skills.sh

@@ -103,8 +103,8 @@ yaml_get() {
     return 1
 }
 
-# Get a summary line: "name — description" for each plugin.
-# Useful for init-plugin.sh prompt display.
+# Get a summary line: "name — description" for each entry.
+# Useful for init-plugins.sh prompt display.
 yaml_summary() {
     local i
     for ((i = 0; i < YAML_COUNT; i++)); do

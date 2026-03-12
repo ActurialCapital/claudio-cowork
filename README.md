@@ -115,7 +115,7 @@ your-project/
 
 ## Agent Orchestration
 
-For complex projects that need multi-agent coordination, `make plugin` installs the recommended agent stack: **GSD** (orchestration) + **Superpowers** (quality enforcement).
+For complex projects that need multi-agent coordination, `make plugins` installs the recommended agent stack: **GSD** (orchestration) + **Superpowers** (quality enforcement).
 
 ### How Orchestration Works
 
@@ -187,15 +187,15 @@ GSD handles orchestration: how to break a large objective into a dependency grap
 
 Neither alone is sufficient. GSD without quality enforcement produces fast but brittle code. Superpowers without orchestration doesn't scale beyond single-task execution. The combination gives you an autonomous pipeline where orchestration is intelligent and individual execution is disciplined.
 
-### Plugin Installation
+### Plugins Installation
 
 ```bash
-make plugin
+make plugins
 ```
 
 The command is idempotent — running it again skips already-installed components. GSD requires Node.js (`npx`). Superpowers requires the Claude CLI. If either dependency is missing, the command prints the manual install command instead of failing.
 
-During `make init`, you're prompted to install plugins as part of the setup flow. You can also run `make plugin` independently at any time.
+During `make init`, you're prompted to install plugins as part of the setup flow. You can also run `make plugins` independently at any time.
 
 See the [agent framework evaluation](agent-framework-evaluation.md) for the full technical analysis behind this recommendation.
 
@@ -240,7 +240,7 @@ make init
 5. **Finalize** — Outputs `GLOBAL-INSTRUCTIONS.md` content (skipped sections excluded). Copy into **Settings → Cowork → Edit Global Instructions**.
 6. **Install skills** — **1 (Yes)** or **2 (No)**. Run `make skills` later if skipped.
 7. **Update `.gitignore`** — Adds `claudio-cowork/` automatically.
-8. **Install plugins** — **1 (Yes)** or **2 (No)**. Run `make plugin` later if skipped.
+8. **Install plugins** — **1 (Yes)** or **2 (No)**. Run `make plugins` later if skipped.
 
 Full walkthrough: [`HOW-TO.md`](HOW-TO.md)
 

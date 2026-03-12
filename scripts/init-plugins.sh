@@ -6,14 +6,14 @@ source "$(dirname "$0")/parse-yaml.sh"
 # ─────────────────────────────────────────────────────────────────
 # Prompt user to install plugins during make init.
 # Plugin names and descriptions are read from plugins.yaml.
-# Receives the Make executable as $1 to delegate to `make plugin`.
+# Receives the Make executable as $1 to delegate to `make plugins`.
 # ─────────────────────────────────────────────────────────────────
 
 MAKE_CMD="${1:-make}"
 PLUGINS_FILE="$COWORK_DIR/plugins.yaml"
 
 if [ ! -f "$PLUGINS_FILE" ]; then
-    dim "No plugins.yaml found. Skipping plugin prompt."
+    dim "No plugins.yaml found. Skipping plugins prompt."
     exit 0
 fi
 
@@ -33,8 +33,8 @@ for ((i = 0; i < YAML_COUNT; i++)); do
 done
 
 if prompt_yesno; then
-    CLAUDIO_NESTED=1 $MAKE_CMD --no-print-directory plugin
+    CLAUDIO_NESTED=1 $MAKE_CMD --no-print-directory plugins
 else
-    success "Skipped plugin installation"
+    success "Skipped plugins installation"
 fi
 echo ""

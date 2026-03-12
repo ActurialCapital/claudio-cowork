@@ -9,7 +9,7 @@ Actionable steps for setting up, customizing, and extending claudio-cowork. For 
 1. [Prerequisites](#prerequisites)
 2. [Initial Setup](#initial-setup)
 3. [The `make init` Process](#the-make-init-process)
-4. [Plugin Installation](#plugin-installation)
+4. [Plugins Installation](#plugins-installation)
 5. [Personalizing Your Profile](#personalizing-your-profile)
 6. [The Feedback Loop](#the-feedback-loop)
 7. [Prompt Template & Mac Shortcut](#prompt-template--mac-shortcut)
@@ -112,16 +112,16 @@ Adds `claudio-cowork/` to project root `.gitignore`. Creates the file if needed.
 ### Step 8: Install Plugins
 
 ```
-1. Yes → Install GSD + Superpowers (runs make plugin)
-2. No  → Skip (run make plugin later)
+1. Yes → Install GSD + Superpowers (runs make plugins)
+2. No  → Skip (run make plugins later)
 ```
 
 ---
 
-## Plugin Installation
+## Plugins Installation
 
 ```bash
-make plugin
+make plugins
 ```
 
 Installs the recommended agent stack independently of `make init`.
@@ -130,7 +130,7 @@ Installs the recommended agent stack independently of `make init`.
 - **GSD** — project-level planning, task decomposition, wave-based parallel execution, cost tracking. Requires Node.js (`npx`).
 - **Superpowers** — TDD enforcement, structured planning, dual-stage code review. Requires Claude CLI (`claude`).
 
-**Idempotency:** GSD is detected by `.claude/gsd-manifest.json`. Superpowers is detected via `claude plugin list`. Already-installed components are skipped.
+**Idempotency:** GSD is detected by `.claude/gsd-manifest.json`. Superpowers is detected via `claude plugin list`. Already-installed plugins are skipped.
 
 **Missing dependencies:** If `npx` or `claude` is unavailable, the command prints the manual install command instead of failing.
 
@@ -291,4 +291,4 @@ Alternatively, ask Claude to create one using the skill-creator skill.
 
 **Need to re-run setup.** `claudio-cowork/` stays on disk, git-ignored. Run `make init` again — existing files are preserved.
 
-**Plugin dependencies missing.** `make plugin` prints manual install commands if `npx` or `claude` is unavailable. Install the dependencies and re-run.
+**Plugins dependencies missing.** `make plugins` prints manual install commands if `npx` or `claude` is unavailable. Install the dependencies and re-run.
