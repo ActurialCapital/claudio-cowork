@@ -34,6 +34,14 @@ SKIP_GLOBAL=false
 generate_global_instructions() {
     local out="$TARGET/GLOBAL-INSTRUCTIONS.md"
 
+    # Determine whether ABOUT-ME/ folder should be referenced.
+    # The folder is relevant if any of its files (about-me.md or
+    # anti-ai-writing-style.md) were configured.
+    local has_about_me_folder=false
+    if ! $SKIP_ABOUT_ME || ! $SKIP_WRITING_STYLE; then
+        has_about_me_folder=true
+    fi
+
     {
         echo "# GLOBAL INSTRUCTIONS"
         echo ""
@@ -42,7 +50,7 @@ generate_global_instructions() {
         # Boot sequence — only reference sections that exist
         local step=1
 
-        if ! $SKIP_ABOUT_ME || ! $SKIP_WRITING_STYLE; then
+        if $has_about_me_folder; then
             echo "${step}. Read all files in \`CLAUDE/ABOUT-ME/\`, including \`feedback.md\`. No task starts without reading them."
             step=$((step + 1))
             echo "${step}. Apply every correction in \`feedback.md\`. These override any conflicting defaults."
@@ -61,12 +69,29 @@ generate_global_instructions() {
 
         echo ""
         echo "## FOLDER PROTOCOL"
-        echo "You have two read-only folders and one write folder."
+
+        # Count read-only folders dynamically:
+        # PROJECTS/ is always present; ABOUT-ME/ only when configured
+        if $has_about_me_folder; then
+            echo "You have two read-only folders and one write folder."
+        else
+            echo "You have one read-only folder and one write folder."
+        fi
+
         echo ""
         echo "### Read-only — never create, edit, or delete anything here:"
 
-        if ! $SKIP_ABOUT_ME || ! $SKIP_WRITING_STYLE; then
-            echo "- \`CLAUDE/ABOUT-ME/\` → My identity, stack, communication preferences, writing rules, and correction log."
+        if $has_about_me_folder; then
+            # Build description based on which files are configured
+            local about_desc=""
+            if ! $SKIP_ABOUT_ME && ! $SKIP_WRITING_STYLE; then
+                about_desc="My identity, stack, communication preferences, writing rules, and correction log."
+            elif ! $SKIP_ABOUT_ME; then
+                about_desc="My identity, stack, communication preferences, and correction log."
+            else
+                about_desc="Writing rules and correction log."
+            fi
+            echo "- \`CLAUDE/ABOUT-ME/\` → ${about_desc}"
         fi
 
         echo "- \`CLAUDE/PROJECTS/\` → Briefs, references, data, and finished work organized by project."
