@@ -4,8 +4,15 @@ source "$(dirname "$0")/lib.sh"
 
 # ─────────────────────────────────────────────────────────────────
 # init.sh — Orchestrator for interactive configuration
-# Calls modular scripts in sequence with step numbering.
-# Each module is self-contained and can also run standalone.
+#
+# Dependency hierarchy:
+#   GLOBAL-INSTRUCTIONS (parent)
+#     ├─ about-me
+#     ├─ code-style
+#     └─ feedback
+#
+# If GLOBAL-INSTRUCTIONS is skipped, all children are auto-skipped
+# and the CLAUDE/ directory is not created at the project root.
 # ─────────────────────────────────────────────────────────────────
 
 require_cowork_dir
@@ -13,25 +20,80 @@ require_cowork_dir
 # Initialize inter-module state
 state_init
 
-# Step 1: about-me.md
-INIT_STEP="Step 1/5" bash "$SCRIPT_DIR/about-me.sh"
+# ── Show workflow tree ──
+printf "  ${CREAM}Workflow:${RESET}\n\n"
+printf "  ${BOLD}${CREAM}GLOBAL-INSTRUCTIONS${RESET}\n"
+printf "  ${GRAY}├─${RESET} about-me\n"
+printf "  ${GRAY}├─${RESET} code-style\n"
+printf "  ${GRAY}└─${RESET} feedback\n"
+printf "  ${BOLD}${CREAM}Plugins${RESET}\n"
+printf "  ${BOLD}${CREAM}Skills${RESET}\n"
+echo ""
 
 divider
+echo ""
 
-# Step 2: anti-ai-writing-style.md
-INIT_STEP="Step 2/5" bash "$SCRIPT_DIR/code-style.sh"
+# ── Gatekeeper: GLOBAL-INSTRUCTIONS ──
+info "GLOBAL-INSTRUCTIONS"
+dim "Parent module — controls about-me, code-style, and feedback."
+printf "\n  ${CREAM}Enable project configuration?${RESET}\n"
 
-divider
+prompt_choice_skip "Use default" "Customize"
 
-# Step 3: feedback.md
-INIT_STEP="Step 3/5" bash "$SCRIPT_DIR/feedback.sh"
+case $PROMPT_RESULT in
+3)
+    # Skip everything — no CLAUDE/ created, no children prompted
+    state_set "SKIP_GLOBAL" "true"
+    state_set "SKIP_ABOUT_ME" "true"
+    state_set "SKIP_WRITING_STYLE" "true"
+    state_set "SKIP_FEEDBACK" "true"
+    echo ""
+    success "GLOBAL-INSTRUCTIONS — skipped"
+    dim "  Children auto-skipped. CLAUDE/ directory will not be created."
+    echo ""
+    printf "  ${GREEN}✓${RESET} Configuration complete — no files created.\n"
+    echo ""
+    # Clean up state
+    state_cleanup
+    ;;
+*)
+    # GLOBAL-INSTRUCTIONS enabled — configure children then generate
+    if [ "$PROMPT_RESULT" = "1" ]; then
+        state_set "GLOBAL_MODE" "default"
+    else
+        state_set "GLOBAL_MODE" "customize"
+    fi
+    echo ""
 
-divider
+    # Install CLAUDE/ structure first
+    bash "$SCRIPT_DIR/templates.sh"
 
-# Step 4: GLOBAL-INSTRUCTIONS.md
-INIT_STEP="Step 4/5" bash "$SCRIPT_DIR/global-instructions.sh"
+    divider
+    echo ""
 
-divider
+    # ── Children ──
+    INIT_STEP="Step 1/3" bash "$SCRIPT_DIR/about-me.sh"
 
-# Step 5: Finalize
-INIT_STEP="Step 5/5" bash "$SCRIPT_DIR/finalize.sh"
+    divider
+    echo ""
+
+    INIT_STEP="Step 2/3" bash "$SCRIPT_DIR/code-style.sh"
+
+    divider
+    echo ""
+
+    INIT_STEP="Step 3/3" bash "$SCRIPT_DIR/feedback.sh"
+
+    divider
+    echo ""
+
+    # ── Generate GLOBAL-INSTRUCTIONS.md ──
+    INIT_STEP="generate" bash "$SCRIPT_DIR/global-instructions.sh"
+
+    divider
+    echo ""
+
+    # ── Finalize ──
+    bash "$SCRIPT_DIR/finalize.sh"
+    ;;
+esac

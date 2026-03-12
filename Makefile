@@ -54,15 +54,14 @@ init: ## Interactive Claude-driven setup for your project
 	@echo ""
 	@printf "  $(TERRA)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
 	@echo ""
-	@bash scripts/templates.sh
 	@bash scripts/init.sh
 	@printf "  $(TERRA)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
 	@echo ""
-	@bash scripts/init-skills.sh $(MAKE)
-	@bash scripts/gitignore.sh
 	@bash scripts/init-plugins.sh $(MAKE)
+	@bash scripts/gitignore.sh
+	@bash scripts/init-skills.sh $(MAKE)
 	@printf "  $(TERRA)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
-	@printf "  $(DIM)$(CREAM)Setup complete. CLAUDE/ is now in your project root.$(RESET)\n"
+	@printf "  $(DIM)$(CREAM)Setup complete.$(RESET)\n"
 	@printf "  $(DIM)$(CREAM)claudio-cowork/ is git-ignored and stays local.$(RESET)\n"
 	@printf "  $(TERRA)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
 	@echo ""

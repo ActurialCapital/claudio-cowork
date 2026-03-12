@@ -6,8 +6,9 @@ source "$(dirname "$0")/lib.sh"
 # global-instructions.sh — Configure CLAUDE/GLOBAL-INSTRUCTIONS.md
 # Can run standalone (make global-instructions) or as part of init.
 #
-# In init flow: reads skip flags from the state file.
-# In standalone mode: infers skip flags from existing files on disk.
+# Init flow:  reads GLOBAL_MODE (default|customize) from state file.
+#             The gatekeeper prompt was already handled by init.sh.
+# Standalone: prompts the user directly (Default / Customize / Skip).
 # ─────────────────────────────────────────────────────────────────
 
 require_cowork_dir
@@ -131,26 +132,8 @@ generate_global_instructions() {
     } > "$out"
 }
 
-
-# ── Main flow ──
-
-resolve_skip_flags
-
-step_header "GLOBAL-INSTRUCTIONS.md" "Boot sequence, folder protocol, naming, and domain defaults."
-
-prompt_choice_skip "Use default" "Customize"
-
-case $PROMPT_RESULT in
-3)
-    state_set "SKIP_GLOBAL" "true"
-    rm -f "$TARGET/GLOBAL-INSTRUCTIONS.md"
-    success "GLOBAL-INSTRUCTIONS.md — skipped"
-    ;;
-1)
-    generate_global_instructions
-    success "GLOBAL-INSTRUCTIONS.md — generated"
-    ;;
-2)
+# ── Customize flow (shared between init and standalone) ──
+run_customize() {
     printf "\n  ${CREAM}Customize your global instructions.${RESET}\n\n"
 
     read -rp "    Output naming convention [project_content-type_v1.ext]: " G_NAMING
@@ -182,5 +165,46 @@ case $PROMPT_RESULT in
     fi
 
     success "GLOBAL-INSTRUCTIONS.md — customized and saved"
-    ;;
-esac
+}
+
+
+# ── Main flow ──
+
+resolve_skip_flags
+
+if [ -f "$INIT_STATE_FILE" ] && [ -n "$(state_get "GLOBAL_MODE" "")" ]; then
+    # ── Init flow: gatekeeper decision was made in init.sh ──
+    GLOBAL_MODE=$(state_get "GLOBAL_MODE" "default")
+
+    info "Generating GLOBAL-INSTRUCTIONS.md..."
+
+    case "$GLOBAL_MODE" in
+    default)
+        generate_global_instructions
+        success "GLOBAL-INSTRUCTIONS.md — generated"
+        ;;
+    customize)
+        run_customize
+        ;;
+    esac
+else
+    # ── Standalone mode: full prompt flow ──
+    step_header "GLOBAL-INSTRUCTIONS.md" "Boot sequence, folder protocol, naming, and domain defaults."
+
+    prompt_choice_skip "Use default" "Customize"
+
+    case $PROMPT_RESULT in
+    3)
+        state_set "SKIP_GLOBAL" "true"
+        rm -f "$TARGET/GLOBAL-INSTRUCTIONS.md"
+        success "GLOBAL-INSTRUCTIONS.md — skipped"
+        ;;
+    1)
+        generate_global_instructions
+        success "GLOBAL-INSTRUCTIONS.md — generated"
+        ;;
+    2)
+        run_customize
+        ;;
+    esac
+fi
