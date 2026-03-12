@@ -66,32 +66,34 @@ Claude should reference your specific stack, domains, and writing rules. If not,
 
 Template files inside `claudio-cowork/CLAUDE/` are never modified — all writes go to `project-root/CLAUDE/`.
 
-### Step 1: Install Templates
+### Step 1: Install Structure
 
-Copies `CLAUDE/` from `claudio-cowork/` to your project root. Existing files are preserved (merge without overwrite).
+Creates the `CLAUDE/` directory skeleton at your project root: `PROJECTS/`, `OUTPUTS/`, `TEMPLATES/`, and `PROMPT-TEMPLATE.md`. Configurable files (`about-me.md`, `anti-ai-writing-style.md`, `feedback.md`, `GLOBAL-INSTRUCTIONS.md`) are created in subsequent steps only if you configure them. Existing files are never overwritten.
 
 ### Step 2: Configure `about-me.md`
 
 ```
 1. Context     → Auto-generate from project analysis (requires Claude CLI)
 2. Customize   → Answer guided questions about your role, stack, and goals
-3. Skip        → Leave unconfigured (excluded from GLOBAL-INSTRUCTIONS.md)
+3. Skip        → File not created; excluded from GLOBAL-INSTRUCTIONS.md
 ```
 
 ### Step 3: Configure `anti-ai-writing-style.md`
 
 ```
-1. Use default → Keep the template as-is
+1. Use default → Copy the template as-is
 2. Customize   → Set tone, banned phrases, domain conventions
-3. Skip        → Leave unconfigured (writing rules excluded from GLOBAL-INSTRUCTIONS.md)
+3. Skip        → File not created; writing rules excluded from GLOBAL-INSTRUCTIONS.md
 ```
+
+If both Steps 2 and 3 are skipped, the `ABOUT-ME/` directory is not created.
 
 ### Step 4: Configure `GLOBAL-INSTRUCTIONS.md`
 
 ```
 1. Use default → Generate standard control plane (accounts for skipped sections above)
 2. Customize   → Set naming conventions, domain defaults, operating rules
-3. Skip        → No GLOBAL-INSTRUCTIONS.md generated
+3. Skip        → File not created
 ```
 
 ### Step 5: Finalize

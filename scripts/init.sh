@@ -9,12 +9,29 @@ source "$(dirname "$0")/lib.sh"
 # All writes go to $TARGET (project root CLAUDE/).
 # Template files in claudio-cowork/CLAUDE/ are never modified.
 #
-# Skip tracking: each section can be skipped. Skipped sections are
-# excluded from GLOBAL-INSTRUCTIONS.md references.
+# Skip tracking: each section can be skipped. Skipped sections
+# are excluded from GLOBAL-INSTRUCTIONS.md and their files are
+# never created. Directories are only created when they contain
+# at least one configured file.
 # ─────────────────────────────────────────────────────────────────
 
 require_cowork_dir
 require_target_dir
+
+# ── Helper: ensure ABOUT-ME/ directory exists ──
+# Called only when a file needs to be written there.
+ensure_about_me_dir() {
+    mkdir -p "$TARGET/ABOUT-ME"
+}
+
+# ── Helper: copy default template file (no overwrite) ──
+# Usage: copy_template "ABOUT-ME/about-me.md"
+copy_template() {
+    local relpath="$1"
+    if [ ! -f "$TARGET/$relpath" ]; then
+        cp "$COWORK_DIR/CLAUDE/$relpath" "$TARGET/$relpath"
+    fi
+}
 
 HAS_CLAUDE=false
 if has_command claude; then
@@ -133,6 +150,7 @@ case $PROMPT_RESULT in
     ;;
 1)
     # ── Context: analyze the parent project ──
+    ensure_about_me_dir
     printf "\n"
     dim "Analyzing project root..."
 
@@ -193,11 +211,13 @@ Output ONLY the markdown content. No preamble, no explanation." 2>/dev/null || t
         success "about-me.md — generated from project context"
     else
         warn "Could not analyze project (Claude CLI unavailable or no project files found)."
-        dim "Keeping default template. You can edit it manually later."
+        copy_template "ABOUT-ME/about-me.md"
+        dim "Using default template. You can edit it manually later."
     fi
     ;;
 2)
     # ── Customize: guided question flow ──
+    ensure_about_me_dir
     printf "\n  ${CREAM}Answer a few questions to build your profile.${RESET}\n\n"
 
     read -rp "    What are you building? " P_BUILDING
@@ -281,9 +301,13 @@ case $PROMPT_RESULT in
     success "anti-ai-writing-style.md — skipped"
     ;;
 1)
+    ensure_about_me_dir
+    copy_template "ABOUT-ME/anti-ai-writing-style.md"
     success "anti-ai-writing-style.md — default accepted"
     ;;
 2)
+    ensure_about_me_dir
+    copy_template "ABOUT-ME/anti-ai-writing-style.md"
     printf "\n  ${CREAM}Customize your writing rules.${RESET}\n\n"
 
     read -rp "    Preferred tone (formal/informal/neutral/academic) [neutral]: " S_TONE
@@ -336,6 +360,8 @@ prompt_choice_skip "Use default" "Customize"
 case $PROMPT_RESULT in
 3)
     SKIP_GLOBAL=true
+    # Remove template if it was left by a previous run
+    rm -f "$TARGET/GLOBAL-INSTRUCTIONS.md"
     success "GLOBAL-INSTRUCTIONS.md — skipped"
     ;;
 1)
@@ -384,6 +410,16 @@ esac
 
 divider
 printf "\n  ${GREEN}◆ Step 4/4 — Finalize${RESET}\n\n"
+
+# ── Post-config cleanup ──
+# Create feedback.md if ABOUT-ME/ has any configured files.
+# Remove ABOUT-ME/ entirely if both sections were skipped.
+if ! $SKIP_ABOUT_ME || ! $SKIP_WRITING_STYLE; then
+    copy_template "ABOUT-ME/feedback.md"
+else
+    # Both skipped — remove the directory if it exists (may be empty or absent)
+    rm -rf "$TARGET/ABOUT-ME"
+fi
 
 if ! $SKIP_GLOBAL; then
     printf "  ${CREAM}Copy the content below and paste into:${RESET}\n"

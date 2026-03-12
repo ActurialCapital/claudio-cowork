@@ -88,15 +88,17 @@ your-project/
 │   ├── scripts/
 │   └── ...
 └── CLAUDE/                               ← Installed by make init
-    ├── ABOUT-ME/                         ← Your profile, writing rules, correction log
+    ├── ABOUT-ME/                         ← Only if configured (not skipped)
     │   ├── about-me.md                   ← Generated from project analysis or your answers
     │   ├── anti-ai-writing-style.md      ← Default or customized during init
     │   └── feedback.md                   ← Running correction log
     ├── PROJECTS/                         ← Your briefs, references, data (per project)
     ├── OUTPUTS/                          ← Where Claude delivers work
-    ├── GLOBAL-INSTRUCTIONS.md            ← Paste into Settings → Cowork
+    ├── GLOBAL-INSTRUCTIONS.md            ← Paste into Settings → Cowork (if configured)
     └── PROMPT-TEMPLATE.md                ← Reusable prompt + Mac shortcut setup
 ```
+
+Skipped sections produce no files or directories. If both `about-me.md` and `anti-ai-writing-style.md` are skipped, the `ABOUT-ME/` directory is not created. `GLOBAL-INSTRUCTIONS.md` dynamically adapts to reference only the sections that exist.
 
 ---
 
@@ -233,11 +235,11 @@ make init
 
 `make init` runs a complete setup sequence:
 
-1. **Install templates** — Copies `CLAUDE/` to your project root. Templates inside `claudio-cowork/` are never modified.
-2. **`about-me.md`** — Select **1 (Context)** to auto-generate from project analysis, **2 (Customize)** for guided questions, or **3 (Skip)**.
-3. **`anti-ai-writing-style.md`** — Select **1** for defaults, **2** to customize, or **3 (Skip)**.
-4. **`GLOBAL-INSTRUCTIONS.md`** — Select **1** for defaults, **2** to customize, or **3 (Skip)**.
-5. **Finalize** — Outputs `GLOBAL-INSTRUCTIONS.md` content (skipped sections excluded). Copy into **Settings → Cowork → Edit Global Instructions**.
+1. **Install structure** — Creates `CLAUDE/` skeleton at project root (`PROJECTS/`, `OUTPUTS/`, `TEMPLATES/`, `PROMPT-TEMPLATE.md`). Templates inside `claudio-cowork/` are never modified.
+2. **`about-me.md`** — Select **1 (Context)** to auto-generate from project analysis, **2 (Customize)** for guided questions, or **3 (Skip)**. Skipped = file not created.
+3. **`anti-ai-writing-style.md`** — Select **1** for defaults, **2** to customize, or **3 (Skip)**. Skipped = file not created.
+4. **`GLOBAL-INSTRUCTIONS.md`** — Select **1** for defaults, **2** to customize, or **3 (Skip)**. Skipped = file not created.
+5. **Finalize** — Outputs `GLOBAL-INSTRUCTIONS.md` content (references only configured sections). Copy into **Settings → Cowork → Edit Global Instructions**.
 6. **Install skills** — **1 (Yes)** or **2 (No)**. Run `make skills` later if skipped.
 7. **Update `.gitignore`** — Adds `claudio-cowork/` automatically.
 8. **Install plugins** — **1 (Yes)** or **2 (No)**. Run `make plugins` later if skipped.
