@@ -6,8 +6,8 @@ source "$(dirname "$0")/lib.sh"
 # global-instructions.sh — Configure CLAUDE/GLOBAL-INSTRUCTIONS.md
 # Can run standalone (make global-instructions) or as part of init.
 #
-# Init flow:  reads GLOBAL_MODE (default|customize) from state file.
-#             The gatekeeper prompt was already handled by init.sh.
+# Init flow:  children have already been configured. Reads their
+#             skip flags from the state file and generates the file.
 # Standalone: prompts the user directly (Default / Customize / Skip).
 # ─────────────────────────────────────────────────────────────────
 
@@ -172,21 +172,12 @@ run_customize() {
 
 resolve_skip_flags
 
-if [ -f "$INIT_STATE_FILE" ] && [ -n "$(state_get "GLOBAL_MODE" "")" ]; then
-    # ── Init flow: gatekeeper decision was made in init.sh ──
-    GLOBAL_MODE=$(state_get "GLOBAL_MODE" "default")
-
+if [ -f "$INIT_STATE_FILE" ] && [ "${INIT_STEP:-}" = "generate" ]; then
+    # ── Init flow: gatekeeper said Yes, children already configured ──
+    # Generate GLOBAL-INSTRUCTIONS.md dynamically from children's skip flags.
     info "Generating GLOBAL-INSTRUCTIONS.md..."
-
-    case "$GLOBAL_MODE" in
-    default)
-        generate_global_instructions
-        success "GLOBAL-INSTRUCTIONS.md — generated"
-        ;;
-    customize)
-        run_customize
-        ;;
-    esac
+    generate_global_instructions
+    success "GLOBAL-INSTRUCTIONS.md — generated"
 else
     # ── Standalone mode: full prompt flow ──
     step_header "GLOBAL-INSTRUCTIONS.md" "Boot sequence, folder protocol, naming, and domain defaults."

@@ -6,13 +6,15 @@ source "$(dirname "$0")/lib.sh"
 # init.sh — Orchestrator for interactive configuration
 #
 # Dependency hierarchy:
-#   GLOBAL-INSTRUCTIONS (parent)
-#     ├─ about-me
-#     ├─ code-style
-#     └─ feedback
+#   GLOBAL-INSTRUCTIONS (parent — Yes/No gatekeeper)
+#     ├─ about-me        (Context / Customize / Skip)
+#     ├─ code-style      (Use default / Customize / Skip)
+#     └─ feedback         (Yes / No)
 #
-# If GLOBAL-INSTRUCTIONS is skipped, all children are auto-skipped
+# If GLOBAL-INSTRUCTIONS is disabled, all children are auto-skipped
 # and the CLAUDE/ directory is not created at the project root.
+# If enabled, each child retains its own prompt options.
+# GLOBAL-INSTRUCTIONS.md is generated dynamically from children.
 # ─────────────────────────────────────────────────────────────────
 
 require_cowork_dir
@@ -33,36 +35,13 @@ echo ""
 divider
 echo ""
 
-# ── Gatekeeper: GLOBAL-INSTRUCTIONS ──
+# ── Gatekeeper: GLOBAL-INSTRUCTIONS (Yes/No) ──
 info "GLOBAL-INSTRUCTIONS"
 dim "Parent module — controls about-me, code-style, and feedback."
-printf "\n  ${CREAM}Enable project configuration?${RESET}\n"
+printf "\n  ${CREAM}Enable Global Instruction style?${RESET}\n"
 
-prompt_choice_skip "Use default" "Customize"
-
-case $PROMPT_RESULT in
-3)
-    # Skip everything — no CLAUDE/ created, no children prompted
-    state_set "SKIP_GLOBAL" "true"
-    state_set "SKIP_ABOUT_ME" "true"
-    state_set "SKIP_WRITING_STYLE" "true"
-    state_set "SKIP_FEEDBACK" "true"
-    echo ""
-    success "GLOBAL-INSTRUCTIONS — skipped"
-    dim "  Children auto-skipped. CLAUDE/ directory will not be created."
-    echo ""
-    printf "  ${GREEN}✓${RESET} Configuration complete — no files created.\n"
-    echo ""
-    # Clean up state
-    state_cleanup
-    ;;
-*)
-    # GLOBAL-INSTRUCTIONS enabled — configure children then generate
-    if [ "$PROMPT_RESULT" = "1" ]; then
-        state_set "GLOBAL_MODE" "default"
-    else
-        state_set "GLOBAL_MODE" "customize"
-    fi
+if prompt_yesno; then
+    # ── Yes: configure children, then generate GLOBAL-INSTRUCTIONS.md ──
     echo ""
 
     # Install CLAUDE/ structure first
@@ -71,7 +50,7 @@ case $PROMPT_RESULT in
     divider
     echo ""
 
-    # ── Children ──
+    # Children — each retains its original prompt (Context/Customize/Skip, etc.)
     INIT_STEP="Step 1/3" bash "$SCRIPT_DIR/about-me.sh"
 
     divider
@@ -87,13 +66,26 @@ case $PROMPT_RESULT in
     divider
     echo ""
 
-    # ── Generate GLOBAL-INSTRUCTIONS.md ──
+    # Generate GLOBAL-INSTRUCTIONS.md dynamically from children's choices
     INIT_STEP="generate" bash "$SCRIPT_DIR/global-instructions.sh"
 
     divider
     echo ""
 
-    # ── Finalize ──
+    # Finalize — summary and copy-paste output
     bash "$SCRIPT_DIR/finalize.sh"
-    ;;
-esac
+else
+    # ── No: skip everything ──
+    state_set "SKIP_GLOBAL" "true"
+    state_set "SKIP_ABOUT_ME" "true"
+    state_set "SKIP_WRITING_STYLE" "true"
+    state_set "SKIP_FEEDBACK" "true"
+    echo ""
+    success "GLOBAL-INSTRUCTIONS — disabled"
+    dim "  Children auto-skipped. CLAUDE/ directory will not be created."
+    echo ""
+    printf "  ${GREEN}✓${RESET} Configuration complete — no files created.\n"
+    echo ""
+    # Clean up state
+    state_cleanup
+fi
