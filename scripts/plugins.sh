@@ -24,16 +24,21 @@ if [ "$YAML_COUNT" -eq 0 ]; then
     exit 0
 fi
 
-# ── Header (skip when called from make init) ──
+# ── Confirmation prompt + header (skip when called from make init) ──
 if [ "${CLAUDIO_NESTED:-}" != "1" ]; then
     echo ""
-    info "Installing plugins"
+    info "Install plugins?"
     # Show what will be installed, from config
     for ((i = 0; i < YAML_COUNT; i++)); do
         local_name="$(yaml_get "$i" "name" || true)"
         local_desc="$(yaml_get "$i" "description" || true)"
         dim "${local_name}: ${local_desc}"
     done
+    if ! prompt_yesno; then
+        success "Skipped plugins installation"
+        echo ""
+        exit 0
+    fi
     echo ""
     divider
     echo ""
@@ -46,6 +51,7 @@ for ((i = 0; i < YAML_COUNT; i++)); do
     p_requires="$(yaml_get "$i" "requires" || true)"
     p_check_file="$(yaml_get "$i" "check_file" || true)"
     p_check_cmd="$(yaml_get "$i" "check_cmd" || true)"
+    p_pre_install="$(yaml_get "$i" "pre_install" || true)"
     p_install_cmd="$(yaml_get "$i" "install_cmd" || true)"
     p_install_dir="$(yaml_get "$i" "install_dir" || true)"
     p_manual_hint="$(yaml_get "$i" "manual_hint" || true)"
@@ -84,6 +90,12 @@ for ((i = 0; i < YAML_COUNT; i++)); do
         hint "$actual_hint"
         echo ""
         continue
+    fi
+
+    # ── Pre-install step (e.g. marketplace setup) ──
+    if [ -n "$p_pre_install" ]; then
+        dim "Pre-install: ${p_pre_install}"
+        eval "$p_pre_install" >/dev/null 2>&1 || true
     fi
 
     # ── Run installation ──

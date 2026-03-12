@@ -9,6 +9,17 @@ source "$(dirname "$0")/lib.sh"
 
 DIST_DIR="$COWORK_DIR/dist"
 
+# ── Confirmation prompt (standalone mode only) ──
+if [ "${CLAUDIO_NESTED:-}" != "1" ]; then
+    echo ""
+    info "Install skills?"
+    if ! prompt_yesno; then
+        success "Skipped skills installation"
+        echo ""
+        exit 0
+    fi
+fi
+
 echo ""
 info "Opening skills for install..."
 echo ""

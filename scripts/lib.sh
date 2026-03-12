@@ -137,7 +137,7 @@ step_header() {
     else
         printf "\n  ${GREEN}◆ ${name}${RESET}\n"
     fi
-    [ -n "$desc" ] && dim "$desc"
+    if [ -n "$desc" ]; then dim "$desc"; fi
 }
 
 # ── Init state management ──

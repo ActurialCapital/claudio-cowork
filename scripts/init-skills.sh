@@ -12,7 +12,7 @@ MAKE_CMD="${1:-make}"
 info "Install skills?"
 
 if prompt_yesno; then
-    $MAKE_CMD --no-print-directory skills
+    CLAUDIO_NESTED=1 $MAKE_CMD --no-print-directory skills
 else
     success "Skipped skills installation"
 fi

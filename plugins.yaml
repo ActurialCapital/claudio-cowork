@@ -13,6 +13,8 @@
 #                 relative to the project root
 #   check_cmd     If set, plugin is "installed" when this command
 #                 exits 0 and outputs a count > 0
+#   pre_install   Command to run before install_cmd (e.g. marketplace setup).
+#                 Runs once; failures are non-fatal.
 #   install_cmd   Command to run for installation
 #   install_dir   Where to cd before running install_cmd
 #                 "project_root" = parent of claudio-cowork/
@@ -26,10 +28,10 @@ plugins:
   - name: Get Shit Done (GSD)
     description: Project-level planning, task decomposition, parallel execution
     requires: npx
-    check_file: .claude/gsd-manifest.json
-    install_cmd: npx get-shit-done-cc@latest --claude --local
+    check_file: .claude/gsd-file-manifest.json
+    install_cmd: npx --yes get-shit-done-cc@latest --claude --local
     install_dir: project_root
-    manual_hint: cd <project-root> && npx get-shit-done-cc --claude --local
+    manual_hint: cd <project-root> && npx --yes get-shit-done-cc --claude --local
     summary: Project planning, wave-based parallel execution, cost tracking. Adds /gsd commands to Claude Code.
     next_step: Use /gsd commands for project orchestration
 
@@ -37,7 +39,8 @@ plugins:
     description: TDD enforcement, structured planning, dual-stage code review
     requires: claude
     check_cmd: claude plugin list 2>/dev/null | grep -c superpowers
+    pre_install: claude plugin marketplace add obra/superpowers-marketplace
     install_cmd: claude plugin install superpowers@superpowers-marketplace
-    manual_hint: claude plugin install superpowers@superpowers-marketplace
+    manual_hint: claude plugin marketplace add obra/superpowers-marketplace && claude plugin install superpowers@superpowers-marketplace
     summary: TDD, structured planning, dual-stage code review. Activates automatically by context.
     next_step: Superpowers skills activate automatically by context
