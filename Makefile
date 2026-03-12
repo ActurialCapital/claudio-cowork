@@ -36,7 +36,7 @@ help: ## Show available commands
 	@printf "  $(CREAM)Commands:$(RESET)\n"
 	@printf "  $(TERRA)make init$(RESET)    $(DIM)Run interactive Claude-driven setup$(RESET)\n"
 	@printf "  $(TERRA)make skills$(RESET)  $(DIM)Package and install all skills$(RESET)\n"
-	@printf "  $(TERRA)make plugin$(RESET)  $(DIM)Install GSD + Superpowers agent stack$(RESET)\n"
+	@printf "  $(TERRA)make plugin$(RESET)  $(DIM)Install plugins from plugins.yaml$(RESET)\n"
 	@printf "  $(TERRA)make clean$(RESET)   $(DIM)Remove dist/$(RESET)\n"
 	@printf "  $(TERRA)make help$(RESET)    $(DIM)Show this message$(RESET)\n"
 	@echo ""
@@ -63,7 +63,7 @@ init: ## Interactive Claude-driven setup for your project
 	@printf "  $(TERRA)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
 	@echo ""
 
-plugin: ## Install GSD + Superpowers agent stack
+plugin: ## Install plugins from plugins.yaml
 	@echo "$$LOGO"
 	@bash scripts/plugin.sh
 

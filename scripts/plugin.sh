@@ -1,81 +1,137 @@
 #!/usr/bin/env bash
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
+source "$(dirname "$0")/parse-yaml.sh"
 
 # ─────────────────────────────────────────────────────────────────
-# Install recommended agent stack: GSD + Superpowers
+# Install plugins defined in plugins.yaml
+# Fully configuration-driven — no plugin names, commands, or
+# descriptions are hardcoded in this script.
 # Idempotent — safe to run multiple times.
 # ─────────────────────────────────────────────────────────────────
 
-# When called from make init, skip the logo (already shown).
+PLUGINS_FILE="$COWORK_DIR/plugins.yaml"
+
+if [ ! -f "$PLUGINS_FILE" ]; then
+    warn "plugins.yaml not found at $PLUGINS_FILE"
+    exit 1
+fi
+
+yaml_parse "$PLUGINS_FILE"
+
+if [ "$YAML_COUNT" -eq 0 ]; then
+    dim "No plugins defined in plugins.yaml."
+    exit 0
+fi
+
+# ── Header (skip when called from make init) ──
 if [ "${CLAUDIO_NESTED:-}" != "1" ]; then
     echo ""
-    info "Installing recommended agent stack"
-    dim "GSD (orchestration) + Superpowers (quality enforcement)"
+    info "Installing plugins"
+    # Show what will be installed, from config
+    for ((i = 0; i < YAML_COUNT; i++)); do
+        local_name="$(yaml_get "$i" "name" || true)"
+        local_desc="$(yaml_get "$i" "description" || true)"
+        dim "${local_name}: ${local_desc}"
+    done
     echo ""
     divider
     echo ""
 fi
 
-# ── Step 1: GSD ──
-info "Step 1/2 — Get Shit Done (GSD)"
-dim "Project-level planning, task decomposition, parallel execution."
-echo ""
+# ── Install each plugin ──
+for ((i = 0; i < YAML_COUNT; i++)); do
+    p_name="$(yaml_get "$i" "name" || true)"
+    p_desc="$(yaml_get "$i" "description" || true)"
+    p_requires="$(yaml_get "$i" "requires" || true)"
+    p_check_file="$(yaml_get "$i" "check_file" || true)"
+    p_check_cmd="$(yaml_get "$i" "check_cmd" || true)"
+    p_install_cmd="$(yaml_get "$i" "install_cmd" || true)"
+    p_install_dir="$(yaml_get "$i" "install_dir" || true)"
+    p_manual_hint="$(yaml_get "$i" "manual_hint" || true)"
 
-if [ -f "$PROJECT_ROOT/.claude/gsd-manifest.json" ]; then
-    success "GSD already installed (gsd-manifest.json found)"
-elif ! has_command npx; then
-    warn "npx not found. Install Node.js, then run:"
-    hint "cd $PROJECT_ROOT && npx get-shit-done-cc --claude --local"
-else
-    dim "Running: npx get-shit-done-cc --claude --local"
-    if (cd "$PROJECT_ROOT" && npx get-shit-done-cc@latest --claude --local); then
-        success "GSD installed into .claude/"
-    else
-        warn "GSD installation failed. Run manually:"
-        hint "cd $PROJECT_ROOT && npx get-shit-done-cc --claude --local"
-    fi
-fi
+    step_num=$((i + 1))
+    info "Step ${step_num}/${YAML_COUNT} — ${p_name}"
+    dim "${p_desc}"
+    echo ""
 
-echo ""
+    # ── Idempotency check: is this plugin already installed? ──
+    already_installed=false
 
-# ── Step 2: Superpowers ──
-info "Step 2/2 — Superpowers"
-dim "TDD enforcement, structured planning, dual-stage code review."
-echo ""
-
-if ! has_command claude; then
-    warn "Claude CLI not found. Install Superpowers manually:"
-    hint "claude plugin install superpowers@superpowers-marketplace"
-else
-    installed=$(claude plugin list 2>/dev/null | grep -c "superpowers" || true)
-    if [ "$installed" -gt 0 ]; then
-        success "Superpowers already installed"
-    else
-        dim "Running: claude plugin install superpowers@superpowers-marketplace"
-        if claude plugin install superpowers@superpowers-marketplace; then
-            success "Superpowers installed"
-        else
-            warn "Superpowers installation failed. Run manually:"
-            hint "claude plugin install superpowers@superpowers-marketplace"
+    if [ -n "$p_check_file" ]; then
+        check_path="$PROJECT_ROOT/$p_check_file"
+        if [ -f "$check_path" ]; then
+            already_installed=true
+        fi
+    elif [ -n "$p_check_cmd" ]; then
+        check_result=$(eval "$p_check_cmd" 2>/dev/null || true)
+        if [ -n "$check_result" ] && [ "$check_result" -gt 0 ] 2>/dev/null; then
+            already_installed=true
         fi
     fi
-fi
 
-echo ""
+    if $already_installed; then
+        success "${p_name} already installed"
+        echo ""
+        continue
+    fi
+
+    # ── Dependency check ──
+    if [ -n "$p_requires" ] && ! has_command "$p_requires"; then
+        warn "${p_requires} not found. Install manually:"
+        # Replace <project-root> placeholder with actual path
+        actual_hint="${p_manual_hint//<project-root>/$PROJECT_ROOT}"
+        hint "$actual_hint"
+        echo ""
+        continue
+    fi
+
+    # ── Run installation ──
+    if [ -z "$p_install_cmd" ]; then
+        warn "No install_cmd defined for ${p_name}"
+        echo ""
+        continue
+    fi
+
+    dim "Running: ${p_install_cmd}"
+
+    # Determine working directory
+    install_dir="$COWORK_DIR"
+    if [ "$p_install_dir" = "project_root" ]; then
+        install_dir="$PROJECT_ROOT"
+    fi
+
+    if (cd "$install_dir" && eval "$p_install_cmd"); then
+        success "${p_name} installed"
+    else
+        warn "${p_name} installation failed. Run manually:"
+        actual_hint="${p_manual_hint//<project-root>/$PROJECT_ROOT}"
+        hint "$actual_hint"
+    fi
+
+    echo ""
+done
+
+# ── Summary (from config) ──
 divider
-printf "  ${DIM}${CREAM}Agent stack installation complete.${RESET}\n"
+printf "  ${DIM}${CREAM}Plugin installation complete.${RESET}\n"
 divider
 echo ""
 
 printf "  ${CREAM}What was installed:${RESET}\n"
-printf "    ${BROWN}GSD${RESET}          Project planning, wave-based parallel execution,\n"
-printf "                  cost tracking. Adds /gsd commands to Claude Code.\n"
-printf "    ${BROWN}Superpowers${RESET}  TDD, structured planning, dual-stage code review.\n"
-printf "                  Adds /superpowers commands to Claude Code.\n"
+for ((i = 0; i < YAML_COUNT; i++)); do
+    p_name="$(yaml_get "$i" "name" || true)"
+    p_summary="$(yaml_get "$i" "summary" || true)"
+    printf "    ${BROWN}%-16s${RESET} %s\n" "$p_name" "$p_summary"
+done
 echo ""
+
 printf "  ${CREAM}Next steps:${RESET}\n"
 printf "    1. Restart Claude Code for plugins to take effect\n"
-printf "    2. Use ${BOLD}/gsd${RESET} commands for project orchestration\n"
-printf "    3. Superpowers skills activate automatically by context\n"
+for ((i = 0; i < YAML_COUNT; i++)); do
+    p_next="$(yaml_get "$i" "next_step" || true)"
+    if [ -n "$p_next" ]; then
+        printf "    %d. %s\n" "$((i + 2))" "$p_next"
+    fi
+done
 echo ""
