@@ -1,58 +1,94 @@
 #!/usr/bin/env bash
 set -euo pipefail
+source "$(dirname "$0")/lib.sh"
 
 # ─────────────────────────────────────────────────────────────────
-# claudio-cowork interactive initialization
-# Handles user interaction via bash; uses claude -p for AI tasks.
-# Exits naturally so the Makefile can continue post-config steps.
+# claudio-cowork interactive configuration
+# Configures about-me.md, anti-ai-writing-style.md, and
+# GLOBAL-INSTRUCTIONS.md in project-root/CLAUDE/.
+# All writes go to $TARGET (project root CLAUDE/).
+# Template files in claudio-cowork/CLAUDE/ are never modified.
+#
+# Skip tracking: each section can be skipped. Skipped sections are
+# excluded from GLOBAL-INSTRUCTIONS.md references.
 # ─────────────────────────────────────────────────────────────────
 
-# ── Colors (match Makefile palette) ──
-GREEN='\033[38;5;108m'
-CREAM='\033[38;5;223m'
-BROWN='\033[38;5;130m'
-TERRA='\033[38;5;173m'
-BOLD='\033[1m'
-DIM='\033[2m'
-RESET='\033[0m'
+require_cowork_dir
+require_target_dir
 
-# ── Verify working directory ──
-if [ ! -f "Makefile" ] || [ ! -d "CLAUDE" ]; then
-    printf "  ${BROWN}⚠${RESET}  Error: must run from the claudio-cowork/ directory.\n"
-    exit 1
-fi
-
-# ── Target directory (project root CLAUDE/, never the local templates) ──
-TARGET="../CLAUDE"
-if [ ! -d "$TARGET" ]; then
-    printf "  ${BROWN}⚠${RESET}  Error: ${TARGET} not found. Run this script via 'make init'.\n"
-    exit 1
-fi
-
-# ── Check for Claude CLI ──
 HAS_CLAUDE=false
-if command -v claude &>/dev/null; then
+if has_command claude; then
     HAS_CLAUDE=true
 fi
 
-# ── Utilities ──
+# ── Skip tracking ──
+SKIP_ABOUT_ME=false
+SKIP_WRITING_STYLE=false
+SKIP_GLOBAL=false
 
-divider() {
-    printf "\n  ${TERRA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}\n"
-}
 
-prompt_choice() {
-    # Returns 0 for "Use default", 1 for "Customize"
-    while true; do
-        printf "\n    ${BROWN}1.${RESET} Use default\n"
-        printf "    ${BROWN}2.${RESET} Customize\n\n"
-        read -rp "    Selection [1/2]: " choice
-        case "$choice" in
-            1) return 0 ;;
-            2) return 1 ;;
-            *) printf "    ${BROWN}⚠${RESET}  Invalid selection. Enter 1 or 2.\n" ;;
-        esac
-    done
+# ── Helper: generate GLOBAL-INSTRUCTIONS.md dynamically ──
+# Reads the skip flags and produces a clean file that only
+# references sections the user actually configured.
+
+generate_global_instructions() {
+    local out="$TARGET/GLOBAL-INSTRUCTIONS.md"
+
+    {
+        echo "# GLOBAL INSTRUCTIONS"
+        echo ""
+        echo "## BEFORE EVERY TASK"
+
+        # Boot sequence — only reference sections that exist
+        local step=1
+
+        if ! $SKIP_ABOUT_ME || ! $SKIP_WRITING_STYLE; then
+            echo "${step}. Read all files in \`CLAUDE/ABOUT-ME/\`, including \`feedback.md\`. No task starts without reading them."
+            step=$((step + 1))
+            echo "${step}. Apply every correction in \`feedback.md\`. These override any conflicting defaults."
+            step=$((step + 1))
+        fi
+
+        echo "${step}. If the task relates to a project, read everything in the matching \`CLAUDE/PROJECTS/\` subfolder before proceeding."
+        step=$((step + 1))
+        echo "${step}. If the task involves a content type that has a matching skill, study that skill's structure first. Use the structure."
+        step=$((step + 1))
+
+        if ! $SKIP_WRITING_STYLE; then
+            echo "${step}. Follow every rule in \`anti-ai-writing-style.md\` for all outputs. No exceptions."
+            step=$((step + 1))
+        fi
+
+        echo ""
+        echo "## FOLDER PROTOCOL"
+        echo "You have two read-only folders and one write folder."
+        echo ""
+        echo "### Read-only — never create, edit, or delete anything here:"
+
+        if ! $SKIP_ABOUT_ME || ! $SKIP_WRITING_STYLE; then
+            echo "- \`CLAUDE/ABOUT-ME/\` → My identity, stack, communication preferences, writing rules, and correction log."
+        fi
+
+        echo "- \`CLAUDE/PROJECTS/\` → Briefs, references, data, and finished work organized by project."
+        echo ""
+        echo "### Write folder — the only place you deliver work:"
+        echo "- \`CLAUDE/OUTPUTS/\` → Everything you create goes here. Organize with one subfolder per project, mirroring the structure of \`CLAUDE/PROJECTS/\`. Create the subfolder if it doesn't exist yet."
+        echo ""
+        echo "## NAMING CONVENTION"
+        echo "All files you create must follow this format:"
+        echo "\`project_content-type_v1.ext\`"
+        echo ""
+        echo "Content types: analysis, model, pipeline, report, spec, script, notebook, doc."
+        echo ""
+        echo "## OPERATING RULES"
+        echo "- If the brief is unclear or incomplete, use the \`AskUserQuestion\` tool. Don't fill gaps with assumptions or generic filler."
+        echo "- Deliver the work. No commentary about the work unless I ask for it."
+        echo "- Never delete files anywhere."
+        echo "- Code must be production-ready: error handling, type hints, docstrings, edge cases handled."
+        echo "- Data pipeline outputs must include: schema definitions, error handling, idempotency guarantees, and logging."
+        echo "- When showing trade-offs, use concrete numbers or code, not abstract pros/cons lists."
+        echo "- Show math as LaTeX when non-trivial. Show code when something is computable."
+    } > "$out"
 }
 
 
@@ -61,28 +97,23 @@ prompt_choice() {
 # ═════════════════════════════════════════════════════════════════
 
 printf "\n  ${GREEN}◆ Step 1/4 — about-me.md${RESET}\n"
-printf "  ${DIM}Your developer profile, project context, and preferences.${RESET}\n"
+dim "Your developer profile, project context, and preferences."
 
-# Step 1 uses its own prompt: Context / Customize
-STEP1_CHOICE=""
-while true; do
-    printf "\n    ${BROWN}1.${RESET} Context\n"
-    printf "    ${BROWN}2.${RESET} Customize\n\n"
-    read -rp "    Selection [1/2]: " STEP1_CHOICE
-    case "$STEP1_CHOICE" in
-        1|2) break ;;
-        *) printf "    ${BROWN}⚠${RESET}  Invalid selection. Enter 1 or 2.\n" ;;
-    esac
-done
+prompt_choice_skip "Context" "Customize"
 
-if [ "$STEP1_CHOICE" = "1" ]; then
+case $PROMPT_RESULT in
+3)
+    SKIP_ABOUT_ME=true
+    success "about-me.md — skipped"
+    ;;
+1)
     # ── Context: analyze the parent project ──
-    printf "\n  ${DIM}Analyzing project root...${RESET}\n"
+    printf "\n"
+    dim "Analyzing project root..."
 
     ANALYSIS=""
 
     if $HAS_CLAUDE; then
-        # Gather project file contents from the parent directory
         PROJECT_CONTEXT=""
         for f in ../package.json ../pyproject.toml ../Cargo.toml ../go.mod ../pom.xml ../build.gradle ../Gemfile ../composer.json ../Makefile; do
             if [ -f "$f" ]; then
@@ -101,7 +132,6 @@ $(head -50 "$f")
                 break
             fi
         done
-        # Include directory listing for structural signals
         PROJECT_CONTEXT+="=== Directory listing (project root) ===
 $(ls -1 ../ 2>/dev/null | head -40)
 
@@ -135,12 +165,13 @@ Output ONLY the markdown content. No preamble, no explanation." 2>/dev/null || t
 
     if [ -n "$ANALYSIS" ]; then
         echo "$ANALYSIS" > "$TARGET/ABOUT-ME/about-me.md"
-        printf "    ${GREEN}✓${RESET} about-me.md — generated from project context\n"
+        success "about-me.md — generated from project context"
     else
-        printf "    ${BROWN}⚠${RESET}  Could not analyze project (Claude CLI unavailable or no project files found).\n"
-        printf "    ${DIM}Keeping default template. You can edit it manually later.${RESET}\n"
+        warn "Could not analyze project (Claude CLI unavailable or no project files found)."
+        dim "Keeping default template. You can edit it manually later."
     fi
-else
+    ;;
+2)
     # ── Customize: guided question flow ──
     printf "\n  ${CREAM}Answer a few questions to build your profile.${RESET}\n\n"
 
@@ -157,7 +188,8 @@ else
 
     CUSTOM=""
     if $HAS_CLAUDE; then
-        printf "\n  ${DIM}Generating profile...${RESET}\n"
+        printf "\n"
+        dim "Generating profile..."
         CUSTOM=$(claude -p "Generate a developer profile as a clean markdown document.
 Details provided by the user:
 - Who: ${P_WHO}
@@ -177,7 +209,6 @@ Make each section specific and actionable based on the answers. Output ONLY mark
     if [ -n "$CUSTOM" ]; then
         echo "$CUSTOM" > "$TARGET/ABOUT-ME/about-me.md"
     else
-        # Fallback: write directly from answers
         cat > "$TARGET/ABOUT-ME/about-me.md" <<EOF
 # About Me
 
@@ -204,8 +235,9 @@ ${P_VALUES}
 EOF
     fi
 
-    printf "  ${GREEN}✓${RESET} about-me.md — customized and saved\n"
-fi
+    success "about-me.md — customized and saved"
+    ;;
+esac
 
 
 # ═════════════════════════════════════════════════════════════════
@@ -214,11 +246,19 @@ fi
 
 divider
 printf "\n  ${GREEN}◆ Step 2/4 — anti-ai-writing-style.md${RESET}\n"
-printf "  ${DIM}Rules for how Claude should (and should not) write.${RESET}\n"
+dim "Rules for how Claude should (and should not) write."
 
-if prompt_choice; then
-    printf "    ${GREEN}✓${RESET} anti-ai-writing-style.md — default accepted\n"
-else
+prompt_choice_skip "Use default" "Customize"
+
+case $PROMPT_RESULT in
+3)
+    SKIP_WRITING_STYLE=true
+    success "anti-ai-writing-style.md — skipped"
+    ;;
+1)
+    success "anti-ai-writing-style.md — default accepted"
+    ;;
+2)
     printf "\n  ${CREAM}Customize your writing rules.${RESET}\n\n"
 
     read -rp "    Preferred tone (formal/informal/neutral/academic) [neutral]: " S_TONE
@@ -227,7 +267,6 @@ else
     read -rp "    Domain-specific writing conventions (or press Enter to skip): " S_DOMAIN
     read -rp "    Additional rules (or press Enter to skip): " S_RULES
 
-    # Append customizations to the existing file
     {
         echo ""
         echo "---"
@@ -254,8 +293,9 @@ else
         fi
     } >> "$TARGET/ABOUT-ME/anti-ai-writing-style.md"
 
-    printf "\n    ${GREEN}✓${RESET} anti-ai-writing-style.md — customized and saved\n"
-fi
+    success "anti-ai-writing-style.md — customized and saved"
+    ;;
+esac
 
 
 # ═════════════════════════════════════════════════════════════════
@@ -264,11 +304,20 @@ fi
 
 divider
 printf "\n  ${GREEN}◆ Step 3/4 — GLOBAL-INSTRUCTIONS.md${RESET}\n"
-printf "  ${DIM}Boot sequence, folder protocol, naming, and domain defaults.${RESET}\n"
+dim "Boot sequence, folder protocol, naming, and domain defaults."
 
-if prompt_choice; then
-    printf "    ${GREEN}✓${RESET} GLOBAL-INSTRUCTIONS.md — default accepted\n"
-else
+prompt_choice_skip "Use default" "Customize"
+
+case $PROMPT_RESULT in
+3)
+    SKIP_GLOBAL=true
+    success "GLOBAL-INSTRUCTIONS.md — skipped"
+    ;;
+1)
+    generate_global_instructions
+    success "GLOBAL-INSTRUCTIONS.md — generated"
+    ;;
+2)
     printf "\n  ${CREAM}Customize your global instructions.${RESET}\n\n"
 
     read -rp "    Output naming convention [project_content-type_v1.ext]: " G_NAMING
@@ -276,28 +325,32 @@ else
     read -rp "    Domain-specific defaults (or press Enter to skip): " G_DEFAULTS
     read -rp "    Additional operating rules (or press Enter to skip): " G_RULES
 
-    # Append customizations
-    {
-        echo ""
-        echo "---"
-        echo ""
-        echo "## Custom Configuration (added during init)"
-        if [ "$G_NAMING" != "project_content-type_v1.ext" ]; then
-            echo ""
-            echo "**Naming convention:** ${G_NAMING}"
-        fi
-        if [ -n "$G_DEFAULTS" ]; then
-            echo ""
-            echo "**Domain defaults:** ${G_DEFAULTS}"
-        fi
-        if [ -n "$G_RULES" ]; then
-            echo ""
-            echo "**Operating rules:** ${G_RULES}"
-        fi
-    } >> "$TARGET/GLOBAL-INSTRUCTIONS.md"
+    generate_global_instructions
 
-    printf "\n    ${GREEN}✓${RESET} GLOBAL-INSTRUCTIONS.md — customized and saved\n"
-fi
+    if [ "$G_NAMING" != "project_content-type_v1.ext" ] || [ -n "$G_DEFAULTS" ] || [ -n "$G_RULES" ]; then
+        {
+            echo ""
+            echo "---"
+            echo ""
+            echo "## Custom Configuration (added during init)"
+            if [ "$G_NAMING" != "project_content-type_v1.ext" ]; then
+                echo ""
+                echo "**Naming convention:** ${G_NAMING}"
+            fi
+            if [ -n "$G_DEFAULTS" ]; then
+                echo ""
+                echo "**Domain defaults:** ${G_DEFAULTS}"
+            fi
+            if [ -n "$G_RULES" ]; then
+                echo ""
+                echo "**Operating rules:** ${G_RULES}"
+            fi
+        } >> "$TARGET/GLOBAL-INSTRUCTIONS.md"
+    fi
+
+    success "GLOBAL-INSTRUCTIONS.md — customized and saved"
+    ;;
+esac
 
 
 # ═════════════════════════════════════════════════════════════════
@@ -306,16 +359,43 @@ fi
 
 divider
 printf "\n  ${GREEN}◆ Step 4/4 — Finalize${RESET}\n\n"
-printf "  ${CREAM}Copy the content below and paste into:${RESET}\n"
-printf "  ${BOLD}Settings → Cowork → Edit Global Instructions${RESET}\n"
 
-printf "\n  ${TERRA}━━━━━━━━━ COPY BELOW THIS LINE ━━━━━━━━━${RESET}\n\n"
-cat "$TARGET/GLOBAL-INSTRUCTIONS.md"
-printf "\n\n  ${TERRA}━━━━━━━━━ COPY ABOVE THIS LINE ━━━━━━━━━${RESET}\n"
+if ! $SKIP_GLOBAL; then
+    printf "  ${CREAM}Copy the content below and paste into:${RESET}\n"
+    printf "  ${BOLD}Settings → Cowork → Edit Global Instructions${RESET}\n"
+
+    printf "\n  ${TERRA}━━━━━━━━━ COPY BELOW THIS LINE ━━━━━━━━━${RESET}\n\n"
+    cat "$TARGET/GLOBAL-INSTRUCTIONS.md"
+    printf "\n\n  ${TERRA}━━━━━━━━━ COPY ABOVE THIS LINE ━━━━━━━━━${RESET}\n"
+else
+    dim "GLOBAL-INSTRUCTIONS.md was skipped. No content to paste."
+fi
 
 printf "\n  ${GREEN}✓${RESET} Interactive configuration complete.\n\n"
-printf "  ${CREAM}Files configured:${RESET}\n"
-printf "    • CLAUDE/ABOUT-ME/about-me.md\n"
-printf "    • CLAUDE/ABOUT-ME/anti-ai-writing-style.md\n"
-printf "    • CLAUDE/GLOBAL-INSTRUCTIONS.md\n"
+
+# List configured files (excluding skipped ones)
+CONFIGURED=()
+$SKIP_ABOUT_ME      || CONFIGURED+=("CLAUDE/ABOUT-ME/about-me.md")
+$SKIP_WRITING_STYLE || CONFIGURED+=("CLAUDE/ABOUT-ME/anti-ai-writing-style.md")
+$SKIP_GLOBAL        || CONFIGURED+=("CLAUDE/GLOBAL-INSTRUCTIONS.md")
+
+if [ ${#CONFIGURED[@]} -gt 0 ]; then
+    printf "  ${CREAM}Files configured:${RESET}\n"
+    for f in "${CONFIGURED[@]}"; do
+        printf "    • %s\n" "$f"
+    done
+else
+    dim "No files were configured (all steps skipped)."
+fi
+
+# List skipped sections
+SKIPPED=()
+$SKIP_ABOUT_ME      && SKIPPED+=("about-me.md")
+$SKIP_WRITING_STYLE && SKIPPED+=("anti-ai-writing-style.md")
+$SKIP_GLOBAL        && SKIPPED+=("GLOBAL-INSTRUCTIONS.md")
+
+if [ ${#SKIPPED[@]} -gt 0 ]; then
+    printf "\n  ${DIM}Skipped: %s${RESET}\n" "$(IFS=', '; echo "${SKIPPED[*]}")"
+fi
+
 printf "\n  ${DIM}Continuing with installation steps...${RESET}\n\n"
