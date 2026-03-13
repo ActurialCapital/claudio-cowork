@@ -1,4 +1,4 @@
-.PHONY: init about-me code-style feedback global-instructions skills plugins clean help
+.PHONY: init about-me code-style feedback global-instructions skills plugins agents-md clean help
 
 SKILLS_DIR := SKILLS
 DIST_DIR := dist
@@ -40,6 +40,7 @@ help: ## Show available commands
 	@printf "  $(TERRA)make feedback$(RESET)            $(DIM)Configure feedback.md$(RESET)\n"
 	@printf "  $(TERRA)make global-instructions$(RESET) $(DIM)Configure GLOBAL-INSTRUCTIONS.md$(RESET)\n"
 	@printf "  $(TERRA)make skills$(RESET)              $(DIM)Package and install all skills$(RESET)\n"
+	@printf "  $(TERRA)make agents-md$(RESET)            $(DIM)Configure AGENTS.md$(RESET)\n"
 	@printf "  $(TERRA)make plugins$(RESET)             $(DIM)Install plugins from plugins.yaml$(RESET)\n"
 	@printf "  $(TERRA)make clean$(RESET)               $(DIM)Remove dist/$(RESET)\n"
 	@printf "  $(TERRA)make help$(RESET)                $(DIM)Show this message$(RESET)\n"
@@ -85,6 +86,10 @@ global-instructions: ## Configure GLOBAL-INSTRUCTIONS.md standalone
 	@echo "$$LOGO"
 	@bash scripts/templates.sh
 	@bash scripts/global-instructions.sh
+
+agents-md: ## Configure AGENTS.md standalone
+	@echo "$$LOGO"
+	@bash scripts/agents-md.sh
 
 plugins: ## Install plugins from plugins.yaml
 	@echo "$$LOGO"

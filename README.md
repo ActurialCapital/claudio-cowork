@@ -81,6 +81,7 @@ Without this system, every session is a blank slate. With it, Claude starts alre
 ```
 your-project/
 ├── .gitignore                            ← claudio-cowork/ entry added automatically
+├── AGENTS.md                             ← Cross-tool agent context (if plugins installed)
 ├── your existing files...
 ├── claudio-cowork/                       ← Stays local, git-ignored
 │   ├── Makefile
@@ -100,7 +101,7 @@ your-project/
 
 Skipped sections produce no files or directories. If `about-me.md`, `anti-ai-writing-style.md`, and `feedback.md` are all skipped, the `ABOUT-ME/` directory is not created. `GLOBAL-INSTRUCTIONS.md` dynamically adapts to reference only the sections that exist.
 
-Each configuration module can also run independently: `make about-me`, `make code-style`, `make feedback`, `make global-instructions`.
+Each configuration module can also run independently: `make about-me`, `make code-style`, `make feedback`, `make global-instructions`, `make agents-md`.
 
 ---
 
@@ -119,7 +120,7 @@ Each configuration module can also run independently: `make about-me`, `make cod
 
 ## Agent Orchestration
 
-For complex projects that need multi-agent coordination, `make plugins` installs the recommended agent stack: **GSD** (orchestration) + **Superpowers** (quality enforcement).
+For complex projects that need multi-agent coordination, `make plugins` installs the recommended agent stack: **GSD** (orchestration) + **Superpowers** (quality enforcement) + **AGENTS.md** (cross-tool project context).
 
 ### How Orchestration Works
 
@@ -173,6 +174,8 @@ Each subagent gets a fresh 200K token context window — task 50 has the same qu
 | State persistence | GSD | `.planning/` directory with YAML frontmatter |
 | Git strategy | GSD | Branch-per-slice, atomic commits |
 | Cost visibility | GSD | Token tracking per phase/slice/model |
+| Build/test/lint commands | AGENTS.md | Cross-tool project context, shared by all agents |
+| Coding conventions | AGENTS.md | Style, naming, architecture map, boundaries |
 | Test-first discipline | Superpowers | TDD skill injected into execution subagents |
 | Code review | Superpowers | Dual-stage review (spec compliance → code quality) |
 | Debugging methodology | Superpowers | Systematic debugging skill when issues arise |
@@ -182,12 +185,13 @@ Each subagent gets a fresh 200K token context window — task 50 has the same qu
 
 ```mermaid
 flowchart TB
-    CC["Claudio-Cowork\n(context)"] -->|"persistent memory,\nprofile, writing rules"| GSD
+    CC["Claudio-Cowork\n(context)"] -->|"persistent memory,\nprofile, writing rules"| AM
+    AM["AGENTS.md\n(project context)"] -->|"build, test, lint,\nconventions, boundaries"| GSD
     GSD["GSD\n(orchestration)"] -->|"planning, waves,\nparallel execution"| SP
     SP["Superpowers\n(quality)"] -->|"TDD, code review,\ndebugging methodology"| OUT[Production-grade output]
 ```
 
-GSD handles orchestration: how to break a large objective into a dependency graph of tasks, execute them in parallel waves, and track cost. Superpowers handles discipline: how to ensure each task follows TDD, gets reviewed, and meets quality standards. Claudio-Cowork handles context: who you are, how you write, and what conventions your project follows.
+GSD handles orchestration: how to break a large objective into a dependency graph of tasks, execute them in parallel waves, and track cost. Superpowers handles discipline: how to ensure each task follows TDD, gets reviewed, and meets quality standards. AGENTS.md handles project context: build commands, test runners, coding conventions, and boundaries — shared across all AI coding agents (Codex, Cursor, Copilot, Gemini CLI, not just Claude). Claudio-Cowork handles personal context: who you are, how you write, and what conventions your project follows.
 
 Neither alone is sufficient. GSD without quality enforcement produces fast but brittle code. Superpowers without orchestration doesn't scale beyond single-task execution. The combination gives you an autonomous pipeline where orchestration is intelligent and individual execution is disciplined.
 
@@ -197,7 +201,7 @@ Neither alone is sufficient. GSD without quality enforcement produces fast but b
 make plugins
 ```
 
-The command is idempotent — running it again skips already-installed components. GSD requires Node.js (`npx`). Superpowers requires the Claude CLI. If either dependency is missing, the command prints the manual install command instead of failing.
+The command is idempotent — running it again skips already-installed components. GSD requires Node.js (`npx`). Superpowers requires the Claude CLI. AGENTS.md uses a Context/Customize/Skip flow (same pattern as `about-me.md`) — with Claude CLI it auto-generates project-specific commands, conventions, and boundaries from your config files. If dependencies are missing, the command prints the manual install command or falls back to a template.
 
 During `make init`, you're prompted to install plugins as part of the setup flow. You can also run `make plugins` independently at any time.
 
@@ -245,7 +249,7 @@ make init
 6. **Finalize** — Outputs `GLOBAL-INSTRUCTIONS.md` content (references only configured sections). Copy into **Settings → Cowork → Edit Global Instructions**.
 7. **Install skills** — **1 (Yes)** or **2 (No)**. Run `make skills` later if skipped.
 8. **Update `.gitignore`** — Adds `claudio-cowork/` automatically.
-9. **Install plugins** — **1 (Yes)** or **2 (No)**. Run `make plugins` later if skipped.
+9. **Install plugins** — **1 (Yes)** or **2 (No)**. Includes AGENTS.md (Context/Customize/Skip flow). Run `make plugins` later if skipped.
 
 Full walkthrough: [`HOW-TO.md`](HOW-TO.md)
 
