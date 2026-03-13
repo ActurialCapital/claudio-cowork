@@ -10,7 +10,7 @@ source "$(dirname "$0")/lib.sh"
 # ─────────────────────────────────────────────────────────────────
 
 AGENTS_DEST="$PROJECT_ROOT/AGENTS.md"
-AGENTS_TEMPLATE="$COWORK_DIR/AGENTS.md"
+AGENTS_TEMPLATE="$COWORK_DIR/INSTRUCTIONS/AGENTS.md"
 
 # ── Idempotency: if AGENTS.md exists, nothing to do ──
 if [ -f "$AGENTS_DEST" ]; then

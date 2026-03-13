@@ -45,12 +45,3 @@ plugins:
     summary: TDD, structured planning, dual-stage code review. Activates automatically by context.
     next_step: Superpowers skills activate automatically by context
 
-  - name: Agents.md
-    description: Cross-tool agent instructions standard (project context layer)
-    requires: bash
-    check_file: AGENTS.md
-    install_cmd: bash claudio-cowork/scripts/agents-md.sh
-    install_dir: project_root
-    manual_hint: bash <project-root>/claudio-cowork/scripts/agents-md.sh
-    summary: Standardized project context for all AI coding agents. References from CLAUDE.md via @AGENTS.md.
-    next_step: Review AGENTS.md and verify the generated instructions match your project

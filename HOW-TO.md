@@ -25,7 +25,7 @@ Actionable steps for setting up, customizing, and extending claudio-cowork. For 
 - Claude Desktop with Cowork mode enabled (macOS, research preview)
 - An existing project directory
 - Node.js (for GSD plugin, optional)
-- Claude CLI (for Superpowers plugin, about-me Context mode, and AGENTS.md Context mode — optional)
+- Claude CLI (for Superpowers plugin, about-me Context mode, and instruction file Context mode — optional)
 
 ---
 
@@ -121,11 +121,22 @@ Adds `claudio-cowork/` to project root `.gitignore`. Creates the file if needed.
 ### Step 9: Install Plugins
 
 ```
-1. Yes → Install GSD + Superpowers + AGENTS.md (runs make plugins)
+1. Yes → Install GSD + Superpowers (runs make plugins)
 2. No  → Skip (run make plugins later)
 ```
 
-AGENTS.md prompts you with Context/Customize/Skip during plugin installation. Context mode auto-generates project-specific instructions from your config files.
+### Step 10: Configure Instruction Files
+
+```
+1. Yes → Configure AGENTS.md and CLAUDE.md (each with its own flow)
+2. No  → Skip (run make instructions later)
+```
+
+Two instruction files are configured in sequence:
+
+**AGENTS.md** — cross-tool project context (build commands, test runners, conventions, boundaries). Used by any AI coding agent that supports the standard. Options: Context (auto-generate from project config files, requires Claude CLI) / Customize (guided Q&A) / Skip.
+
+**CLAUDE.md** — Claude-specific behavior rules (think-before-coding, simplicity, surgical changes, goal-driven execution) and a dated mistake log. Options: Use default (copy the template with proven behavior rules) / Customize (tailor strictness, TDD preference, communication style) / Skip.
 
 ---
 
@@ -139,7 +150,9 @@ Each configuration module can run independently, outside the full `make init` fl
 | `make code-style` | Configure `anti-ai-writing-style.md` (Default / Customize / Skip) |
 | `make feedback` | Configure `feedback.md` (Yes / No) |
 | `make global-instructions` | Configure `GLOBAL-INSTRUCTIONS.md` — infers which ABOUT-ME/ files exist on disk |
-| `make agents-md` | Configure `AGENTS.md` at project root (Context / Customize / Skip) |
+| `make instructions` | Configure both `AGENTS.md` and `CLAUDE.md` |
+| `make agents-md` | Configure `AGENTS.md` standalone (Context / Customize / Skip) |
+| `make claude-md` | Configure `CLAUDE.md` standalone (Default / Customize / Skip) |
 
 Standalone targets create the `CLAUDE/` skeleton if it doesn't exist and use the same prompts as `make init`. The `global-instructions` target automatically detects which files are present to generate correct references.
 
@@ -156,13 +169,12 @@ Installs the recommended agent stack independently of `make init`.
 **What it installs:**
 - **GSD** — project-level planning, task decomposition, wave-based parallel execution, cost tracking. Requires Node.js (`npx`).
 - **Superpowers** — TDD enforcement, structured planning, dual-stage code review. Requires Claude CLI (`claude`).
-- **AGENTS.md** — cross-tool project context (build commands, test runners, conventions, boundaries). Uses a Context/Customize/Skip flow. Context mode scans your project's config files and generates a filled-in AGENTS.md via Claude CLI. Falls back to a generic template if Claude CLI is unavailable.
 
-**Idempotency:** GSD is detected by `.claude/gsd-manifest.json`. Superpowers is detected via `claude plugin list`. AGENTS.md is detected by the file's presence at project root. Already-installed plugins are skipped.
+**Idempotency:** GSD is detected by `.claude/gsd-manifest.json`. Superpowers is detected via `claude plugin list`. Already-installed plugins are skipped.
 
-**Missing dependencies:** If `npx` or `claude` is unavailable, the command prints the manual install command or falls back to a template.
+**Missing dependencies:** If `npx` or `claude` is unavailable, the command prints the manual install command instead of failing.
 
-**After installation:** Restart Claude Code. GSD commands are available via `/gsd`. Superpowers skills activate automatically by context. AGENTS.md is loaded into Claude Code via `@AGENTS.md` in CLAUDE.md (appended automatically during install).
+**After installation:** Restart Claude Code. GSD commands are available via `/gsd`. Superpowers skills activate automatically by context.
 
 For how GSD and Superpowers interact during development, see [Agent Orchestration](README.md#agent-orchestration) in the README.
 
@@ -317,8 +329,10 @@ Alternatively, ask Claude to create one using the skill-creator skill.
 
 **`make init` doesn't find project context.** Ensure `claudio-cowork` is cloned inside your project (not alongside it). Claude looks at `../` for project files.
 
-**Need to re-run setup.** `claudio-cowork/` stays on disk, git-ignored. Run `make init` again — existing files are preserved. To reconfigure a single section, use standalone targets: `make about-me`, `make code-style`, `make feedback`, or `make global-instructions`.
+**Need to re-run setup.** `claudio-cowork/` stays on disk, git-ignored. Run `make init` again — existing files are preserved. To reconfigure a single section, use standalone targets: `make about-me`, `make code-style`, `make feedback`, `make global-instructions`, `make instructions`, `make agents-md`, or `make claude-md`.
 
 **Plugins dependencies missing.** `make plugins` prints manual install commands if `npx` or `claude` is unavailable. Install the dependencies and re-run.
 
 **AGENTS.md generated with wrong commands.** The Context mode infers commands from config files on disk. If your project uses non-standard commands or the generated output is inaccurate, edit `AGENTS.md` directly at project root. Lines marked `(verify)` were inferred with lower confidence. To regenerate from scratch, delete `AGENTS.md` at project root and run `make agents-md`.
+
+**CLAUDE.md behavior rules not applied.** Ensure `CLAUDE.md` exists at project root and contains the `## Behavior` section. To regenerate, delete `CLAUDE.md` at project root and run `make claude-md`.

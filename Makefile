@@ -1,4 +1,4 @@
-.PHONY: init about-me code-style feedback global-instructions skills plugins agents-md clean help
+.PHONY: init about-me code-style feedback global-instructions instructions agents-md claude-md skills plugins clean help
 
 SKILLS_DIR := SKILLS
 DIST_DIR := dist
@@ -39,8 +39,10 @@ help: ## Show available commands
 	@printf "  $(TERRA)make code-style$(RESET)          $(DIM)Configure anti-ai-writing-style.md$(RESET)\n"
 	@printf "  $(TERRA)make feedback$(RESET)            $(DIM)Configure feedback.md$(RESET)\n"
 	@printf "  $(TERRA)make global-instructions$(RESET) $(DIM)Configure GLOBAL-INSTRUCTIONS.md$(RESET)\n"
+	@printf "  $(TERRA)make instructions$(RESET)        $(DIM)Configure AGENTS.md + CLAUDE.md$(RESET)\n"
+	@printf "  $(TERRA)make agents-md$(RESET)           $(DIM)Configure AGENTS.md standalone$(RESET)\n"
+	@printf "  $(TERRA)make claude-md$(RESET)           $(DIM)Configure CLAUDE.md standalone$(RESET)\n"
 	@printf "  $(TERRA)make skills$(RESET)              $(DIM)Package and install all skills$(RESET)\n"
-	@printf "  $(TERRA)make agents-md$(RESET)            $(DIM)Configure AGENTS.md$(RESET)\n"
 	@printf "  $(TERRA)make plugins$(RESET)             $(DIM)Install plugins from plugins.yaml$(RESET)\n"
 	@printf "  $(TERRA)make clean$(RESET)               $(DIM)Remove dist/$(RESET)\n"
 	@printf "  $(TERRA)make help$(RESET)                $(DIM)Show this message$(RESET)\n"
@@ -60,6 +62,7 @@ init: ## Interactive Claude-driven setup for your project
 	@echo ""
 	@bash scripts/init-plugins.sh $(MAKE)
 	@bash scripts/gitignore.sh
+	@bash scripts/init-instructions.sh
 	@bash scripts/init-skills.sh $(MAKE)
 	@printf "  $(TERRA)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
 	@printf "  $(DIM)$(CREAM)Setup complete.$(RESET)\n"
@@ -87,9 +90,17 @@ global-instructions: ## Configure GLOBAL-INSTRUCTIONS.md standalone
 	@bash scripts/templates.sh
 	@bash scripts/global-instructions.sh
 
+instructions: ## Configure AGENTS.md + CLAUDE.md
+	@echo "$$LOGO"
+	@bash scripts/instructions.sh
+
 agents-md: ## Configure AGENTS.md standalone
 	@echo "$$LOGO"
 	@bash scripts/agents-md.sh
+
+claude-md: ## Configure CLAUDE.md standalone
+	@echo "$$LOGO"
+	@bash scripts/claude-md.sh
 
 plugins: ## Install plugins from plugins.yaml
 	@echo "$$LOGO"

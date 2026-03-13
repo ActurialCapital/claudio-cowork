@@ -1,13 +1,6 @@
 # CLAUDE.md
 
-## Project
-What is this and what's the stack.
-
-## Commands
-Build, test, lint, format, deploy. Exact commands.
-
-## Architecture
-Key directories and what lives where.
+@AGENTS.md
 
 ## Behavior
 
@@ -65,10 +58,13 @@ For multi-step tasks, state a brief plan:
 3. [Step] → verify: [check]
 ```
 
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
 ---
 
 These guidelines are working if: fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
 ## Mistakes Log
+
+[REPLACE] Add entries as they accumulate. One per line, dated.
+[REPLACE] Example:
+[REPLACE] - [2025-01-15] Used `any` type when strict types were available. Always use specific types.
+[REPLACE] - [2025-01-20] Forgot to run tests before committing. Always verify before commit.
