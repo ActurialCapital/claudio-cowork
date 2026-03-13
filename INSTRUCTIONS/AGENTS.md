@@ -17,7 +17,6 @@
 [REPLACE] - `pnpm test <path>` — run a single test file.
 [REPLACE] - `pnpm lint` — run ESLint.
 [REPLACE] - `pnpm typecheck` — run TypeScript type checking.
-[REPLACE] - Always run tests before committing.
 
 ## Architecture
 
@@ -38,13 +37,11 @@
 
 ## Git workflow
 
-[REPLACE] Add your commit, branch, and PR conventions.
+[REPLACE] Add your commit and branch naming conventions.
 [REPLACE] Example:
 [REPLACE] - Commit format: `type(scope): description`
 [REPLACE] - Types: feat, fix, chore, docs, refactor, test.
-[REPLACE] - Branch naming: `feature/description`, `fix/description`.
-[REPLACE] - PRs must include tests for new functionality.
-[REPLACE] - Keep PRs focused — one concern per PR.
+[REPLACE] - Branch naming: `feature/description`, `fix/description`. GSD overrides branching during orchestrated execution.
 
 ## Boundaries
 

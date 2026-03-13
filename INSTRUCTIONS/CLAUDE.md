@@ -44,19 +44,11 @@ The test: Every changed line should trace directly to the user's request.
 
 ### 4. Goal-Driven Execution
 
-Define success criteria. Loop until verified.
+Frame every task as a verifiable outcome, not an open-ended activity.
 
-Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
+Before starting, answer: "How will I know this is done?" If the answer is vague, sharpen it. "Add validation" becomes "invalid inputs are rejected with typed errors." "Fix the bug" becomes "the specific failure case no longer reproduces." "Refactor X" becomes "behavior is identical, structure is improved."
 
-For multi-step tasks, state a brief plan:
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
+The goal defines the work. If you can't state the success condition, you don't understand the task yet — go back to §1.
 
 ---
 
