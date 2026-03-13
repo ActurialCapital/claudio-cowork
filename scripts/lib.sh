@@ -110,6 +110,29 @@ prompt_choice_skip() {
     done
 }
 
+# Four-option prompt with Skip. Sets PROMPT_RESULT to 1, 2, 3, or 4.
+# Usage: prompt_four_skip "Use default" "Context" "Customize"
+#        case $PROMPT_RESULT in 1) default ;; 2) context ;; 3) custom ;; 4) skip ;; esac
+prompt_four_skip() {
+    local label1="${1:-Use default}"
+    local label2="${2:-Context}"
+    local label3="${3:-Customize}"
+    while true; do
+        printf "\n    ${BROWN}1.${RESET} %s\n" "$label1"
+        printf "    ${BROWN}2.${RESET} %s\n" "$label2"
+        printf "    ${BROWN}3.${RESET} %s\n" "$label3"
+        printf "    ${BROWN}4.${RESET} Skip\n\n"
+        read -rp "    Selection [1/2/3/4]: " choice
+        case "$choice" in
+            1) PROMPT_RESULT=1; return 0 ;;
+            2) PROMPT_RESULT=2; return 0 ;;
+            3) PROMPT_RESULT=3; return 0 ;;
+            4) PROMPT_RESULT=4; return 0 ;;
+            *) printf "    ${BROWN}⚠${RESET}  Invalid selection. Enter 1, 2, 3, or 4.\n" ;;
+        esac
+    done
+}
+
 # ── Init helpers ──
 
 # Ensure ABOUT-ME/ directory exists.
